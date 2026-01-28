@@ -22,7 +22,7 @@ from core.utils import (
 # Cấu hình trang
 st.set_page_config(
     page_title="PyStegoWatermark Suite",
-    page_icon="�️",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -37,6 +37,7 @@ st.markdown("""
         background: linear-gradient(120deg, #1f77b4, #2ca02c);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        background-clip: text;
         text-align: center;
         margin-bottom: 1rem;
         padding: 1rem 0;
@@ -45,19 +46,19 @@ st.markdown("""
     /* Subtitle */
     .subtitle {
         text-align: center;
-        color: #666;
+        color: #888;
         font-size: 1.1rem;
         margin-bottom: 2rem;
     }
     
-    /* Metric cards */
+    /* Metric cards - tương thích dark mode */
     .metric-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 1.5rem;
         border-radius: 1rem;
         color: white;
         text-align: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         margin: 0.5rem 0;
     }
     
@@ -65,41 +66,41 @@ st.markdown("""
         font-size: 2rem;
         font-weight: bold;
         margin: 0.5rem 0;
+        color: white;
     }
     
     .metric-label {
         font-size: 0.9rem;
-        opacity: 0.9;
+        opacity: 0.95;
+        color: white;
     }
     
-    /* Info boxes */
+    /* Info boxes - tương thích dark mode */
     .info-box {
-        background-color: #e3f2fd;
+        background-color: rgba(33, 150, 243, 0.15);
         border-left: 4px solid #2196f3;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
+        color: inherit;
     }
     
     .success-box {
-        background-color: #e8f5e9;
+        background-color: rgba(76, 175, 80, 0.15);
         border-left: 4px solid #4caf50;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
+        color: inherit;
     }
     
     .warning-box {
-        background-color: #fff3e0;
+        background-color: rgba(255, 152, 0, 0.15);
         border-left: 4px solid #ff9800;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 1rem 0;
-    }
-    
-    /* Sidebar styling */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        color: inherit;
     }
     
     /* Button styling */
@@ -127,15 +128,19 @@ st.markdown("""
     
     /* File uploader */
     [data-testid="stFileUploader"] {
-        border: 2px dashed #ccc;
+        border: 2px dashed #666;
         border-radius: 0.5rem;
         padding: 1rem;
-        background-color: #fafafa;
     }
     
     /* Hide Streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+    
+    /* Fix text color in dark mode */
+    .stMarkdown {
+        color: inherit;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -144,7 +149,7 @@ st.markdown('<h1 class="main-header">PyStegoWatermark Suite</h1>', unsafe_allow_
 st.markdown('<p class="subtitle">Hệ thống Demo - Đề tài 5: Giấu tin & Thủy vân Ảnh/Video</p>', unsafe_allow_html=True)
 
 # Sidebar - Chọn module
-st.sidebar.title("⚙️ Chọn Module")
+st.sidebar.title("Chọn Module")
 st.sidebar.markdown("---")
 
 module = st.sidebar.radio(
@@ -157,7 +162,7 @@ module = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### � Hướng dẫn")
+st.sidebar.markdown("### Hướng dẫn")
 if module == "Steganography (Giấu tin)":
     st.sidebar.info("Giấu tin mật trong ảnh sử dụng thuật toán LSB. Hỗ trợ mã hóa AES-256.")
 elif module == "Image Watermarking":
@@ -168,7 +173,7 @@ else:
     st.sidebar.info("Mô phỏng các tấn công để kiểm tra độ bền của watermark.")
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 💡 Tips")
+st.sidebar.markdown("### Tips")
 st.sidebar.markdown("""
 - Dùng PNG/BMP cho Steganography
 - Alpha = 0.1 cho Watermarking
@@ -178,7 +183,7 @@ st.sidebar.markdown("""
 
 # ==================== MODULE 1: STEGANOGRAPHY ====================
 if module == "Steganography (Giấu tin)":
-    st.header("🔒 LSB Steganography - Giấu tin mật")
+    st.header("LSB Steganography - Giấu tin mật")
     st.markdown('<div class="info-box">Ẩn thông điệp văn bản vào ảnh sử dụng thuật toán LSB (Least Significant Bit).</div>', unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["Nhúng tin", "Trích xuất tin"])
@@ -227,7 +232,7 @@ if module == "Steganography (Giấu tin)":
                         result = stego.embed(cover_path, secret_message, stego_path)
                         
                         # Hiển thị kết quả
-                        st.markdown('<div class="success-box">✓ Nhúng thành công!</div>', unsafe_allow_html=True)
+                        st.success("Nhúng thành công!")
                         
                         col1, col2 = st.columns(2)
                         with col1:
@@ -237,7 +242,7 @@ if module == "Steganography (Giấu tin)":
                         
                         # Metrics với styling đẹp hơn
                         st.markdown("---")
-                        st.subheader("📊 Thông tin nhúng")
+                        st.subheader("Thông tin nhúng")
                         col1, col2, col3 = st.columns(3)
                         
                         with col1:
@@ -269,7 +274,7 @@ if module == "Steganography (Giấu tin)":
                         
                         # Quality metrics
                         st.markdown("---")
-                        st.subheader("📈 Chất lượng ảnh")
+                        st.subheader("Chất lượng ảnh")
                         original_img = cv2.imread(cover_path)
                         stego_img = cv2.imread(stego_path)
                         
@@ -329,9 +334,9 @@ if module == "Steganography (Giấu tin)":
                                          password=decrypt_password if use_decryption else None)
                         extracted_message = stego.extract(stego_path)
                         
-                        st.markdown('<div class="success-box">✓ Trích xuất thành công!</div>', unsafe_allow_html=True)
+                        st.markdown('<div class="success-box">Trích xuất thành công!</div>', unsafe_allow_html=True)
                         st.markdown("---")
-                        st.subheader("📝 Thông điệp đã giấu")
+                        st.subheader("Thông điệp đã giấu")
                         st.code(extracted_message, language=None)
                         
                         # Thống kê
@@ -345,7 +350,7 @@ if module == "Steganography (Giấu tin)":
 
 # ==================== MODULE 2: IMAGE WATERMARKING ====================
 elif module == "Image Watermarking":
-    st.header("🖼️ DCT-SVD Image Watermarking")
+    st.header("DCT-SVD Image Watermarking")
     st.markdown('<div class="info-box">Nhúng watermark vào ảnh bằng DCT-SVD kết hợp Arnold Cat Map. Bền với JPEG compression và nhiễu.</div>', unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["Nhúng Watermark", "Trích xuất Watermark"])
@@ -391,7 +396,7 @@ elif module == "Image Watermarking":
                         watermarker = DCT_SVD_Watermark(alpha=alpha, arnold_iterations=arnold_iter)
                         result = watermarker.embed(host_path, wm_path, output_path)
                         
-                        st.markdown('<div class="success-box">✓ Nhúng watermark thành công!</div>', unsafe_allow_html=True)
+                        st.success("Nhúng watermark thành công!")
                         
                         col1, col2 = st.columns(2)
                         with col1:
@@ -401,7 +406,7 @@ elif module == "Image Watermarking":
                         
                         # Metrics với UI đẹp hơn
                         st.markdown("---")
-                        st.subheader("📊 Thông số watermark")
+                        st.subheader("Thông số watermark")
                         col1, col2, col3 = st.columns(3)
                         
                         with col1:
@@ -430,7 +435,7 @@ elif module == "Image Watermarking":
                         
                         # Quality metrics
                         st.markdown("---")
-                        st.subheader("📈 Đánh giá chất lượng")
+                        st.subheader("Đánh giá chất lượng")
                         original_img = cv2.imread(host_path)
                         watermarked_img = cv2.imread(output_path)
                         
@@ -441,15 +446,15 @@ elif module == "Image Watermarking":
                         col1, col2, col3 = st.columns(3)
                         
                         # PSNR với đánh giá
-                        psnr_status = "🟢 Excellent" if psnr > 40 else "🟡 Good" if psnr > 30 else "🔴 Poor"
+                        psnr_status = "Excellent" if psnr > 40 else "Good" if psnr > 30 else "Poor"
                         col1.metric("PSNR", f"{psnr:.2f} dB", delta=psnr_status)
                         
                         # SSIM với đánh giá
-                        ssim_status = "🟢 Excellent" if ssim_val > 0.95 else "🟡 Good" if ssim_val > 0.9 else "🔴 Poor"
+                        ssim_status = "Excellent" if ssim_val > 0.95 else "Good" if ssim_val > 0.9 else "Poor"
                         col2.metric("SSIM", f"{ssim_val:.4f}", delta=ssim_status)
                         
                         # MSE
-                        mse_status = "🟢 Low" if mse < 50 else "🟡 Medium" if mse < 100 else "🔴 High"
+                        mse_status = "Low" if mse < 50 else "Medium" if mse < 100 else "High"
                         col3.metric("MSE", f"{mse:.2f}", delta=mse_status)
                         
                         # Download
@@ -497,21 +502,21 @@ elif module == "Image Watermarking":
                         watermarker = DCT_SVD_Watermark(arnold_iterations=arnold_iter_extract)
                         extracted = watermarker.extract(wm_path, orig_path, wm_size)
                         
-                        st.markdown('<div class="success-box">✓ Trích xuất thành công!</div>', unsafe_allow_html=True)
+                        st.success("Trích xuất thành công!")
                         
                         col1, col2 = st.columns([1, 1])
                         with col1:
                             st.image(extracted, caption="Watermark trích xuất", use_container_width=True)
                         with col2:
                             # Tính NC nếu có watermark gốc
-                            st.markdown("### 📊 Đánh giá")
+                            st.markdown("### Đánh giá")
                             st.info("Watermark đã được trích xuất thành công. So sánh với watermark gốc để tính NC (Normalized Correlation).")
                             
                             # Hiển thị thông tin
                             st.markdown(f"""
                             **Kích thước:** {wm_size}x{wm_size}  
                             **Arnold iterations:** {arnold_iter_extract}  
-                            **Trạng thái:** ✓ Hoàn tất
+                            **Trạng thái:** Hoàn tất
                             """)
                     
                     except Exception as e:
@@ -520,8 +525,8 @@ elif module == "Image Watermarking":
 
 # ==================== MODULE 3: VIDEO WATERMARKING ====================
 elif module == "Video Watermarking":
-    st.header("🎬 Video Watermarking")
-    st.markdown('<div class="warning-box">⚠️ Xử lý video có thể mất nhiều thời gian. Khuyến nghị video ngắn (<30s) để demo.</div>', unsafe_allow_html=True)
+    st.header("Video Watermarking")
+    st.markdown('<div class="warning-box">Xử lý video có thể mất nhiều thời gian. Khuyến nghị video ngắn (<30s) để demo.</div>', unsafe_allow_html=True)
     
     video_file = st.file_uploader("Upload video gốc", type=['mp4', 'avi'])
     watermark_img = st.file_uploader("Upload Watermark", type=['png', 'jpg'])
@@ -550,10 +555,10 @@ elif module == "Video Watermarking":
                     video_wm = VideoWatermark(alpha=alpha_video, frame_skip=frame_skip)
                     result = video_wm.embed(video_path, wm_path, output_path)
                     
-                    st.markdown('<div class="success-box">✓ Xử lý video thành công!</div>', unsafe_allow_html=True)
+                    st.success("Xử lý video thành công!")
                     
                     st.markdown("---")
-                    st.subheader("📊 Thông tin video")
+                    st.subheader("Thông tin video")
                     
                     col1, col2, col3, col4 = st.columns(4)
                     
@@ -604,7 +609,7 @@ elif module == "Video Watermarking":
 
 # ==================== MODULE 4: ATTACK SIMULATION ====================
 elif module == "Attack Simulation":
-    st.header("⚔️ Attack Simulation - Test độ bền Watermark")
+    st.header("Attack Simulation - Test độ bền Watermark")
     st.markdown('<div class="info-box">Mô phỏng các tấn công phổ biến để kiểm tra độ bền của watermark.</div>', unsafe_allow_html=True)
     
     watermarked_img = st.file_uploader("Upload ảnh đã watermark", type=['png', 'jpg'])
@@ -649,7 +654,7 @@ elif module == "Attack Simulation":
         col1.metric("PSNR", f"{psnr:.2f} dB")
         col2.metric("SSIM", f"{ssim_val:.4f}")
         
-        st.markdown('<div class="info-box">💡 <strong>Tip:</strong> Sau khi tấn công, bạn có thể thử trích xuất watermark ở tab Image Watermarking để kiểm tra độ bền.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box"><strong>Tip:</strong> Sau khi tấn công, bạn có thể thử trích xuất watermark ở tab Image Watermarking để kiểm tra độ bền.</div>', unsafe_allow_html=True)
 
 
 # Footer
