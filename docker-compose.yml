@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8501:8501"
     volumes:
@@ -14,3 +16,4 @@ services:
       - STREAMLIT_SERVER_HEADLESS=true
       - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
     restart: unless-stopped
+    container_name: pystego-watermark
