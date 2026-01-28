@@ -1,6 +1,6 @@
 """
-PyStegoWatermark Suite - Streamlit GUI
-Giao diện demo cho hệ thống giấu tin và thủy vân ảnh/video
+PyStegoWatermark Suite - Giao diện Streamlit
+Giao diện demo cho hệ thống giấu tin và nhúng thủy vân ảnh/video
 """
 
 import streamlit as st
@@ -146,7 +146,7 @@ st.markdown("""
 
 # Header
 st.markdown('<h1 class="main-header">PyStegoWatermark Suite</h1>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Hệ thống Demo - Đề tài 5: Giấu tin & Thủy vân Ảnh/Video</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Hệ thống Demo - Đề tài 5: Giấu tin & Nhúng thủy vân Ảnh/Video</p>', unsafe_allow_html=True)
 
 # Sidebar - Chọn module
 st.sidebar.title("Chọn Module")
@@ -154,39 +154,45 @@ st.sidebar.markdown("---")
 
 module = st.sidebar.radio(
     "Chức năng:",
-    ["Steganography (Giấu tin)", 
-     "Image Watermarking", 
-     "Video Watermarking",
-     "Attack Simulation"],
+    ["Giấu tin (Text vào Ảnh)", 
+     "Thủy vân Ảnh (Logo vào Ảnh)", 
+     "Thủy vân Video (Logo vào Video)",
+     "Mô phỏng Tấn công"],
     index=0
 )
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Hướng dẫn")
-if module == "Steganography (Giấu tin)":
-    st.sidebar.info("Giấu tin mật trong ảnh sử dụng thuật toán LSB. Hỗ trợ mã hóa AES-256.")
-elif module == "Image Watermarking":
-    st.sidebar.info("Nhúng watermark vào ảnh bằng DCT-SVD. Bền với JPEG compression và nhiễu.")
-elif module == "Video Watermarking":
-    st.sidebar.info("Bảo vệ bản quyền video bằng cách nhúng watermark vào từng frame.")
+if module == "Giấu tin (Text vào Ảnh)":
+    st.sidebar.info("**Steganography (LSB)**: Giấu thông điệp TEXT bí mật vào ảnh. Hỗ trợ mã hóa AES-256.")
+elif module == "Thủy vân Ảnh (Logo vào Ảnh)":
+    st.sidebar.info("**Digital Watermarking (DCT-SVD)**: Nhúng ảnh LOGO vào ảnh gốc để bảo vệ bản quyền. Bền với JPEG, noise.")
+elif module == "Thủy vân Video (Logo vào Video)":
+    st.sidebar.info("**Video Watermarking**: Nhúng ảnh LOGO vào video để bảo vệ bản quyền số.")
 else:
-    st.sidebar.info("Mô phỏng các tấn công để kiểm tra độ bền của watermark.")
+    st.sidebar.info("Mô phỏng các tấn công (JPEG, noise, crop, rotate) để kiểm tra độ bền của thủy vân.")
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### Tips")
+st.sidebar.markdown("### Phân biệt")
 st.sidebar.markdown("""
-- Dùng PNG/BMP cho Steganography
-- Alpha = 0.1 cho Watermarking
-- Video ngắn (<30s) để demo nhanh
+**Giấu tin:**
+- Nhúng: TEXT message
+- Mục đích: Truyền tin bí mật
+- Độ bền: Yếu
+
+**Thủy vân:**
+- Nhúng: ẢNH logo
+- Mục đích: Bảo vệ bản quyền
+- Độ bền: Mạnh
 """)
 
 
 # ==================== MODULE 1: STEGANOGRAPHY ====================
-if module == "Steganography (Giấu tin)":
-    st.header("LSB Steganography - Giấu tin mật")
-    st.markdown('<div class="info-box">Ẩn thông điệp văn bản vào ảnh sử dụng thuật toán LSB (Least Significant Bit).</div>', unsafe_allow_html=True)
+if module == "Giấu tin (Text vào Ảnh)":
+    st.header("Giấu tin - Steganography (LSB)")
+    st.markdown('<div class="info-box"><strong>Mục đích:</strong> Giấu thông điệp TEXT bí mật vào ảnh để trao đổi thông tin. Sử dụng thuật toán LSB (Least Significant Bit).</div>', unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["Nhúng tin", "Trích xuất tin"])
+    tab1, tab2 = st.tabs(["Nhúng Text vào Ảnh", "Trích xuất Text từ Ảnh"])
     
     with tab1:
         st.subheader("Nhúng thông điệp vào ảnh")
@@ -194,7 +200,7 @@ if module == "Steganography (Giấu tin)":
         col1, col2 = st.columns(2)
         
         with col1:
-            cover_image = st.file_uploader("Upload ảnh gốc (Cover Image)", 
+            cover_image = st.file_uploader("Tải lên ảnh gốc (Cover Image)", 
                                           type=['png', 'bmp', 'jpg'], 
                                           key="stego_cover")
             secret_message = st.text_area("Nhập thông điệp cần giấu:", 
@@ -282,8 +288,8 @@ if module == "Steganography (Giấu tin)":
                         ssim_val = calculate_ssim(original_img, stego_img)
                         
                         col1, col2 = st.columns(2)
-                        col1.metric("PSNR", f"{psnr:.2f} dB", delta="Excellent" if psnr > 40 else "Good")
-                        col2.metric("SSIM", f"{ssim_val:.4f}", delta="Excellent" if ssim_val > 0.95 else "Good")
+                        col1.metric("PSNR", f"{psnr:.2f} dB", delta="Xuất sắc" if psnr > 40 else "Tốt")
+                        col2.metric("SSIM", f"{ssim_val:.4f}", delta="Xuất sắc" if ssim_val > 0.95 else "Tốt")
                         
                         # Download
                         with open(stego_path, "rb") as f:
@@ -304,7 +310,7 @@ if module == "Steganography (Giấu tin)":
         col1, col2 = st.columns(2)
         
         with col1:
-            stego_image = st.file_uploader("Upload ảnh Stego", 
+            stego_image = st.file_uploader("Tải lên ảnh Stego", 
                                           type=['png', 'bmp'], 
                                           key="stego_extract")
             
@@ -349,28 +355,28 @@ if module == "Steganography (Giấu tin)":
 
 
 # ==================== MODULE 2: IMAGE WATERMARKING ====================
-elif module == "Image Watermarking":
-    st.header("DCT-SVD Image Watermarking")
-    st.markdown('<div class="info-box">Nhúng watermark vào ảnh bằng DCT-SVD kết hợp Arnold Cat Map. Bền với JPEG compression và nhiễu.</div>', unsafe_allow_html=True)
+elif module == "Thủy vân Ảnh (Logo vào Ảnh)":
+    st.header("Nhúng thủy vân Ảnh - Digital Watermarking (DCT-SVD)")
+    st.markdown('<div class="info-box"><strong>Mục đích:</strong> Nhúng ảnh LOGO vào ảnh gốc để bảo vệ bản quyền. Sử dụng DCT-SVD kết hợp Arnold Cat Map. Bền với JPEG compression và nhiễu.</div>', unsafe_allow_html=True)
     
-    tab1, tab2 = st.tabs(["Nhúng Watermark", "Trích xuất Watermark"])
+    tab1, tab2 = st.tabs(["Nhúng Logo vào Ảnh", "Trích xuất Logo từ Ảnh"])
     
     with tab1:
-        st.subheader("Nhúng watermark vào ảnh")
+        st.subheader("Nhúng logo/watermark vào ảnh")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            host_image = st.file_uploader("Upload ảnh gốc (Host Image)", 
+            host_image = st.file_uploader("Tải lên ảnh gốc (Host Image)", 
                                          type=['png', 'jpg', 'bmp'],
                                          key="wm_host")
-            watermark_image = st.file_uploader("Upload Watermark (Logo)", 
+            watermark_image = st.file_uploader("Tải lên Logo/Watermark", 
                                               type=['png', 'jpg', 'bmp'],
                                               key="wm_logo")
             
             alpha = st.slider("Hệ số nhúng (Alpha)", 0.01, 0.5, 0.1, 0.01,
                             help="Càng lớn càng bền nhưng càng rõ")
-            arnold_iter = st.slider("Arnold iterations", 1, 20, 10,
+            arnold_iter = st.slider("Số lần xáo trộn Arnold", 1, 20, 10,
                                    help="Số lần xáo trộn watermark")
         
         with col2:
@@ -412,7 +418,7 @@ elif module == "Image Watermarking":
                         with col1:
                             st.markdown(f"""
                             <div class="metric-card">
-                                <div class="metric-label">Watermark Size</div>
+                                <div class="metric-label">Kích thước Thủy vân</div>
                                 <div class="metric-value">{result['watermark_size']}</div>
                             </div>
                             """, unsafe_allow_html=True)
@@ -428,7 +434,7 @@ elif module == "Image Watermarking":
                         with col3:
                             st.markdown(f"""
                             <div class="metric-card">
-                                <div class="metric-label">Blocks Used</div>
+                                <div class="metric-label">Blocks Sử dụng</div>
                                 <div class="metric-value">{result['blocks_used']}</div>
                             </div>
                             """, unsafe_allow_html=True)
@@ -446,15 +452,15 @@ elif module == "Image Watermarking":
                         col1, col2, col3 = st.columns(3)
                         
                         # PSNR với đánh giá
-                        psnr_status = "Excellent" if psnr > 40 else "Good" if psnr > 30 else "Poor"
+                        psnr_status = "Xuất sắc" if psnr > 40 else "Tốt" if psnr > 30 else "Kém"
                         col1.metric("PSNR", f"{psnr:.2f} dB", delta=psnr_status)
                         
                         # SSIM với đánh giá
-                        ssim_status = "Excellent" if ssim_val > 0.95 else "Good" if ssim_val > 0.9 else "Poor"
+                        ssim_status = "Xuất sắc" if ssim_val > 0.95 else "Tốt" if ssim_val > 0.9 else "Kém"
                         col2.metric("SSIM", f"{ssim_val:.4f}", delta=ssim_status)
                         
                         # MSE
-                        mse_status = "Low" if mse < 50 else "Medium" if mse < 100 else "High"
+                        mse_status = "Thấp" if mse < 50 else "Trung bình" if mse < 100 else "Cao"
                         col3.metric("MSE", f"{mse:.2f}", delta=mse_status)
                         
                         # Download
@@ -476,15 +482,15 @@ elif module == "Image Watermarking":
         col1, col2 = st.columns(2)
         
         with col1:
-            watermarked_img = st.file_uploader("Ảnh đã watermark", 
+            watermarked_img = st.file_uploader("Tải lên ảnh đã nhúng thủy vân", 
                                               type=['png', 'jpg'],
                                               key="extract_wm")
-            original_img = st.file_uploader("Ảnh gốc (để so sánh)", 
+            original_img = st.file_uploader("Tải lên ảnh gốc (để so sánh)", 
                                            type=['png', 'jpg'],
                                            key="extract_orig")
-            wm_size = st.number_input("Kích thước watermark", 16, 128, 32,
+            wm_size = st.number_input("Kích thước thủy vân", 16, 128, 32,
                                      help="Phải biết trước kích thước")
-            arnold_iter_extract = st.slider("Arnold iterations", 1, 20, 10, key="arnold_extract")
+            arnold_iter_extract = st.slider("Số lần xáo trộn Arnold", 1, 20, 10, key="arnold_extract")
         
         if st.button("Trích xuất Watermark", type="primary", use_container_width=True):
             if not watermarked_img or not original_img:
@@ -510,12 +516,12 @@ elif module == "Image Watermarking":
                         with col2:
                             # Tính NC nếu có watermark gốc
                             st.markdown("### Đánh giá")
-                            st.info("Watermark đã được trích xuất thành công. So sánh với watermark gốc để tính NC (Normalized Correlation).")
+                            st.info("Thủy vân đã được trích xuất thành công. So sánh với thủy vân gốc để tính NC (Normalized Correlation).")
                             
                             # Hiển thị thông tin
                             st.markdown(f"""
                             **Kích thước:** {wm_size}x{wm_size}  
-                            **Arnold iterations:** {arnold_iter_extract}  
+                            **Số lần xáo trộn Arnold:** {arnold_iter_extract}  
                             **Trạng thái:** Hoàn tất
                             """)
                     
@@ -524,95 +530,168 @@ elif module == "Image Watermarking":
 
 
 # ==================== MODULE 3: VIDEO WATERMARKING ====================
-elif module == "Video Watermarking":
-    st.header("Video Watermarking")
+elif module == "Thủy vân Video (Logo vào Video)":
+    st.header("Nhúng thủy vân Video - Video Watermarking")
+    st.markdown('<div class="info-box"><strong>Mục đích:</strong> Nhúng ảnh LOGO vào video để bảo vệ bản quyền số.</div>', unsafe_allow_html=True)
     st.markdown('<div class="warning-box">Xử lý video có thể mất nhiều thời gian. Khuyến nghị video ngắn (<30s) để demo.</div>', unsafe_allow_html=True)
     
-    video_file = st.file_uploader("Upload video gốc", type=['mp4', 'avi'])
-    watermark_img = st.file_uploader("Upload Watermark", type=['png', 'jpg'])
+    tab1, tab2 = st.tabs(["Nhúng Logo vào Video", "Trích xuất Logo từ Video"])
     
-    col1, col2 = st.columns(2)
-    with col1:
-        alpha_video = st.slider("Hệ số nhúng", 0.01, 0.5, 0.1, 0.01, key="alpha_video")
-        frame_skip = st.slider("Nhúng mỗi N frames", 1, 10, 5,
-                              help="1 = tất cả frames, 5 = mỗi 5 frames")
+    with tab1:
+        st.subheader("Nhúng logo/watermark vào video")
+        
+        video_file = st.file_uploader("Tải lên video gốc", type=['mp4', 'avi'], key="video_embed")
+        watermark_img = st.file_uploader("Tải lên Logo/Watermark", type=['png', 'jpg'], key="wm_video_embed")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            alpha_video = st.slider("Hệ số nhúng", 0.01, 0.5, 0.1, 0.01, key="alpha_video")
+            frame_skip = st.slider("Nhúng mỗi N khung hình", 1, 10, 5,
+                                  help="1 = tất cả khung hình, 5 = mỗi 5 khung hình")
+        
+        if st.button("Nhúng Watermark vào Video", type="primary", use_container_width=True):
+            if not video_file or not watermark_img:
+                st.error("Vui lòng upload video và watermark!")
+            else:
+                with st.spinner("Đang xử lý video... (có thể mất vài phút)"):
+                    temp_dir = tempfile.mkdtemp()
+                    video_path = os.path.join(temp_dir, "video.mp4")
+                    wm_path = os.path.join(temp_dir, "watermark.png")
+                    output_path = os.path.join(temp_dir, "watermarked_video.mp4")
+                    
+                    with open(video_path, "wb") as f:
+                        f.write(video_file.read())
+                    Image.open(watermark_img).save(wm_path)
+                    
+                    try:
+                        video_wm = VideoWatermark(alpha=alpha_video, frame_skip=frame_skip)
+                        result = video_wm.embed(video_path, wm_path, output_path)
+                        
+                        st.success("Xử lý video thành công!")
+                        
+                        st.markdown("---")
+                        st.subheader("Thông tin video")
+                        
+                        col1, col2, col3, col4 = st.columns(4)
+                        
+                        with col1:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <div class="metric-label">Tổng Khung hình</div>
+                                <div class="metric-value">{result['total_frames']}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col2:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <div class="metric-label">Đã nhúng Thủy vân</div>
+                                <div class="metric-value">{result['watermarked_frames']}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col3:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <div class="metric-label">FPS</div>
+                                <div class="metric-value">{result['fps']}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with col4:
+                            st.markdown(f"""
+                            <div class="metric-card">
+                                <div class="metric-label">Độ phân giải</div>
+                                <div class="metric-value">{result['resolution']}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        with open(output_path, "rb") as f:
+                            st.download_button(
+                                "Tải video đã watermark",
+                                f,
+                                file_name="watermarked_video.mp4",
+                                mime="video/mp4",
+                                use_container_width=True
+                            )
+                    
+                    except Exception as e:
+                        st.error(f"Lỗi: {str(e)}")
     
-    if st.button("Nhúng Watermark vào Video", type="primary", use_container_width=True):
-        if not video_file or not watermark_img:
-            st.error("Vui lòng upload video và watermark!")
-        else:
-            with st.spinner("Đang xử lý video... (có thể mất vài phút)"):
-                temp_dir = tempfile.mkdtemp()
-                video_path = os.path.join(temp_dir, "video.mp4")
-                wm_path = os.path.join(temp_dir, "watermark.png")
-                output_path = os.path.join(temp_dir, "watermarked_video.mp4")
-                
-                with open(video_path, "wb") as f:
-                    f.write(video_file.read())
-                Image.open(watermark_img).save(wm_path)
-                
-                try:
-                    video_wm = VideoWatermark(alpha=alpha_video, frame_skip=frame_skip)
-                    result = video_wm.embed(video_path, wm_path, output_path)
+    with tab2:
+        st.subheader("Trích xuất watermark từ video")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            watermarked_video = st.file_uploader("Tải lên video đã nhúng thủy vân", type=['mp4', 'avi'], key="video_extract_wm")
+            original_video = st.file_uploader("Tải lên video gốc (để so sánh)", type=['mp4', 'avi'], key="video_extract_orig")
+            
+            frame_number = st.number_input("Khung hình số (để trích xuất)", 0, 1000, 0, 
+                                          help="Chọn khung hình nào để trích xuất thủy vân")
+            wm_size_video = st.number_input("Kích thước thủy vân", 16, 128, 32, key="wm_size_video",
+                                           help="Phải biết trước kích thước")
+            arnold_iter_video = st.slider("Số lần xáo trộn Arnold", 1, 20, 10, key="arnold_video_extract")
+        
+        with col2:
+            st.info("""
+            **Hướng dẫn:**
+            1. Tải lên video đã nhúng thủy vân
+            2. Tải lên video gốc (trước khi nhúng)
+            3. Chọn khung hình muốn trích xuất
+            4. Nhập kích thước thủy vân (phải giống lúc nhúng)
+            5. Nhấn "Trích xuất"
+            """)
+        
+        if st.button("Trích xuất Watermark từ Video", type="primary", use_container_width=True):
+            if not watermarked_video or not original_video:
+                st.error("Vui lòng upload cả 2 video!")
+            else:
+                with st.spinner("Đang trích xuất watermark từ video..."):
+                    temp_dir = tempfile.mkdtemp()
+                    wm_video_path = os.path.join(temp_dir, "watermarked.mp4")
+                    orig_video_path = os.path.join(temp_dir, "original.mp4")
                     
-                    st.success("Xử lý video thành công!")
+                    with open(wm_video_path, "wb") as f:
+                        f.write(watermarked_video.read())
+                    with open(orig_video_path, "wb") as f:
+                        f.write(original_video.read())
                     
-                    st.markdown("---")
-                    st.subheader("Thông tin video")
-                    
-                    col1, col2, col3, col4 = st.columns(4)
-                    
-                    with col1:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-label">Tổng Frames</div>
-                            <div class="metric-value">{result['total_frames']}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col2:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-label">Watermarked</div>
-                            <div class="metric-value">{result['watermarked_frames']}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col3:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-label">FPS</div>
-                            <div class="metric-value">{result['fps']}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col4:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <div class="metric-label">Resolution</div>
-                            <div class="metric-value">{result['resolution']}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with open(output_path, "rb") as f:
-                        st.download_button(
-                            "Tải video đã watermark",
-                            f,
-                            file_name="watermarked_video.mp4",
-                            mime="video/mp4",
-                            use_container_width=True
+                    try:
+                        video_wm = VideoWatermark(arnold_iterations=arnold_iter_video)
+                        extracted = video_wm.extract_from_frame(
+                            wm_video_path, 
+                            orig_video_path, 
+                            frame_number, 
+                            wm_size_video
                         )
-                
-                except Exception as e:
-                    st.error(f"Lỗi: {str(e)}")
+                        
+                        st.success("Trích xuất thành công!")
+                        
+                        col1, col2 = st.columns([1, 1])
+                        with col1:
+                            st.image(extracted, caption=f"Watermark từ frame {frame_number}", use_container_width=True)
+                        with col2:
+                            st.markdown("### Thông tin")
+                            st.markdown(f"""
+                            **Khung hình:** {frame_number}  
+                            **Kích thước:** {wm_size_video}x{wm_size_video}  
+                            **Số lần xáo trộn Arnold:** {arnold_iter_video}  
+                            **Trạng thái:** Hoàn tất
+                            """)
+                            
+                            st.info("So sánh thủy vân này với thủy vân gốc để tính NC (Normalized Correlation) và đánh giá độ bền.")
+                    
+                    except Exception as e:
+                        st.error(f"Lỗi: {str(e)}")
 
 
 # ==================== MODULE 4: ATTACK SIMULATION ====================
-elif module == "Attack Simulation":
-    st.header("Attack Simulation - Test độ bền Watermark")
-    st.markdown('<div class="info-box">Mô phỏng các tấn công phổ biến để kiểm tra độ bền của watermark.</div>', unsafe_allow_html=True)
+elif module == "Mô phỏng Tấn công":
+    st.header("Mô phỏng Tấn công - Attack Simulation")
+    st.markdown('<div class="info-box"><strong>Mục đích:</strong> Kiểm tra độ bền của thủy vân khi bị tấn công (JPEG compression, noise, crop, rotate).</div>', unsafe_allow_html=True)
     
-    watermarked_img = st.file_uploader("Upload ảnh đã watermark", type=['png', 'jpg'])
+    watermarked_img = st.file_uploader("Tải lên ảnh đã nhúng thủy vân", type=['png', 'jpg'])
     
     if watermarked_img:
         image = np.array(Image.open(watermarked_img))
@@ -620,21 +699,21 @@ elif module == "Attack Simulation":
         
         st.subheader("Chọn loại tấn công")
         attack_type = st.selectbox("Loại tấn công:", 
-                                   ["JPEG Compression", "Gaussian Noise", "Crop", "Rotate"])
+                                   ["Nén JPEG", "Nhiễu Gaussian", "Cắt xén", "Xoay"])
         
-        if attack_type == "JPEG Compression":
-            quality = st.slider("JPEG Quality", 10, 100, 50)
+        if attack_type == "Nén JPEG":
+            quality = st.slider("Chất lượng JPEG", 10, 100, 50)
             attacked = apply_attack(image_bgr, 'jpeg_compression', quality=quality)
         
-        elif attack_type == "Gaussian Noise":
-            std = st.slider("Noise Std Dev", 5, 50, 25)
+        elif attack_type == "Nhiễu Gaussian":
+            std = st.slider("Độ lệch chuẩn nhiễu", 5, 50, 25)
             attacked = apply_attack(image_bgr, 'gaussian_noise', std=std)
         
-        elif attack_type == "Crop":
-            crop_percent = st.slider("Crop %", 0.05, 0.5, 0.2, 0.05)
+        elif attack_type == "Cắt xén":
+            crop_percent = st.slider("Tỷ lệ cắt %", 0.05, 0.5, 0.2, 0.05)
             attacked = apply_attack(image_bgr, 'crop', crop_percent=crop_percent)
         
-        else:  # Rotate
+        else:  # Xoay
             angle = st.slider("Góc xoay (độ)", -45, 45, 5)
             attacked = apply_attack(image_bgr, 'rotate', angle=angle)
         
@@ -654,7 +733,7 @@ elif module == "Attack Simulation":
         col1.metric("PSNR", f"{psnr:.2f} dB")
         col2.metric("SSIM", f"{ssim_val:.4f}")
         
-        st.markdown('<div class="info-box"><strong>Tip:</strong> Sau khi tấn công, bạn có thể thử trích xuất watermark ở tab Image Watermarking để kiểm tra độ bền.</div>', unsafe_allow_html=True)
+        st.markdown('<div class="info-box"><strong>Tip:</strong> Sau khi tấn công, bạn có thể thử trích xuất thủy vân ở tab "Thủy vân Ảnh" để kiểm tra độ bền.</div>', unsafe_allow_html=True)
 
 
 # Footer
