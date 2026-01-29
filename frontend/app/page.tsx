@@ -7,6 +7,7 @@ import { Navbar, HeroSection } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmbedForm, ExtractForm } from '@/components/features/steganography';
 import { WatermarkEmbedForm, WatermarkExtractForm } from '@/components/features/watermarking';
+import { VideoEmbedForm } from '@/components/features/video';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -95,9 +96,7 @@ export default function HomePage() {
                 Nhúng thủy vân vào video để bảo vệ bản quyền
               </p>
               
-              <div className="text-center text-gray-500">
-                Sắp ra mắt...
-              </div>
+              <VideoEmbedForm />
             </motion.div>
           </div>
         </section>
