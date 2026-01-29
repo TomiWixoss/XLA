@@ -7,7 +7,7 @@ import { Navbar, HeroSection } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmbedForm, ExtractForm } from '@/components/features/steganography';
 import { WatermarkEmbedForm, WatermarkExtractForm } from '@/components/features/watermarking';
-import { VideoEmbedForm } from '@/components/features/video';
+import { VideoEmbedForm, VideoExtractForm } from '@/components/features/video';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -93,10 +93,23 @@ export default function HomePage() {
             >
               <h2 className="text-4xl font-bold mb-4 text-center">Thủy Vân Video</h2>
               <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
-                Nhúng thủy vân vào video để bảo vệ bản quyền
+                Nhúng và trích xuất thủy vân từ video để bảo vệ bản quyền
               </p>
               
-              <VideoEmbedForm />
+              <Tabs defaultValue="embed" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8">
+                  <TabsTrigger value="embed">Nhúng Watermark</TabsTrigger>
+                  <TabsTrigger value="extract">Trích Xuất Watermark</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="embed">
+                  <VideoEmbedForm />
+                </TabsContent>
+                
+                <TabsContent value="extract">
+                  <VideoExtractForm />
+                </TabsContent>
+              </Tabs>
             </motion.div>
           </div>
         </section>

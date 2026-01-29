@@ -2,9 +2,10 @@
 Steganography API Routes
 """
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 import tempfile
 import os
+import base64
 from app.core.steganography import LSB_Stego
 from app.core.utils import calculate_psnr, calculate_ssim
 import cv2
@@ -38,21 +39,21 @@ async def embed_message(
         psnr = calculate_psnr(original_img, stego_img)
         ssim = calculate_ssim(original_img, stego_img)
         
-        result['psnr'] = psnr
-        result['ssim'] = ssim
+        # Read stego image as base64
+        with open(stego_path, "rb") as f:
+            stego_base64 = base64.b64encode(f.read()).decode('utf-8')
         
-        # Return file
-        return FileResponse(
-            stego_path,
-            media_type="image/png",
-            filename="stego_image.png",
-            headers={
-                "X-Message-Length": str(result['message_length']),
-                "X-PSNR": str(psnr),
-                "X-SSIM": str(ssim),
-                "X-Bits-Used": str(result['bits_used']),
-            }
-        )
+        return {
+            "success": True,
+            "message_length": result['message_length'],
+            "bits_used": result['bits_used'],
+            "capacity": result['capacity'],
+            "usage_percent": result['usage_percent'],
+            "encrypted": result['encrypted'],
+            "psnr": float(psnr),
+            "ssim": float(ssim),
+            "stego_image": f"data:image/png;base64,{stego_base64}"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

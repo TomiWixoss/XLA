@@ -25,7 +25,7 @@ export interface EmbedMessageResponse {
   encrypted: boolean;
   psnr: number;
   ssim: number;
-  stego_image_blob?: Blob;
+  stego_image: string; // base64 data URL
 }
 
 export interface ExtractMessageResponse {
@@ -45,24 +45,9 @@ export const steganographyApi = {
 
     const response = await apiClient.post('/api/steganography/embed', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      responseType: 'blob',
     });
-
-    // Extract metadata from headers
-    const headers = response.headers;
-    const blob = response.data;
-
-    return {
-      success: true,
-      message_length: parseInt(headers['x-message-length'] || '0'),
-      bits_used: parseInt(headers['x-bits-used'] || '0'),
-      capacity: 0,
-      usage_percent: 0,
-      encrypted: params.useEncryption,
-      psnr: parseFloat(headers['x-psnr'] || '0'),
-      ssim: parseFloat(headers['x-ssim'] || '0'),
-      stego_image_blob: blob,
-    };
+    
+    return response.data;
   },
 
   extractMessage: async (params: ExtractMessageParams): Promise<ExtractMessageResponse> => {
