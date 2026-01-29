@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, RotateCcw } from 'lucide-react';
 import { useWatermarkEmbedForm } from '@/hooks/use-watermark-embed-form';
 import { useWatermarkExtractForm } from '@/hooks/use-watermark-extract-form';
+import { AnimatedCounter, RippleButton } from '@/components/ui/micro-interactions';
 
 interface Props {
   isActive: boolean;
@@ -396,25 +397,29 @@ export function WatermarkingScreen({ isActive }: Props) {
 
                     <div className="metrics-grid">
                       <div className="metric-box">
-                        <div className="metric-value">{embedData.watermark_size || 'N/A'}</div>
+                        <div className="metric-value counter">{embedData.watermark_size || 'N/A'}</div>
                         <div className="metric-label">Size</div>
                       </div>
                       <div className="metric-box">
-                        <div className="metric-value">{embedData.blocks_used || 'N/A'}</div>
+                        <div className="metric-value counter">{embedData.blocks_used || 'N/A'}</div>
                         <div className="metric-label">Blocks</div>
                       </div>
                       <div className="metric-box">
-                        <div className="metric-value text-[var(--success)]">{embedData.psnr?.toFixed(1) || '∞'}</div>
+                        <div className="metric-value text-[var(--success)] counter">
+                          <AnimatedCounter value={embedData.psnr || 0} duration={1.2} decimals={1} suffix=" dB" />
+                        </div>
                         <div className="metric-label">PSNR</div>
                       </div>
                       <div className="metric-box">
-                        <div className="metric-value">{embedData.ssim?.toFixed(3) || '1.0'}</div>
+                        <div className="metric-value counter">
+                          <AnimatedCounter value={embedData.ssim || 1} duration={1.4} decimals={3} />
+                        </div>
                         <div className="metric-label">SSIM</div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <button
+                      <RippleButton
                         type="button"
                         onClick={() => {
                           if (embedData.watermarked_image) {
@@ -428,15 +433,15 @@ export function WatermarkingScreen({ isActive }: Props) {
                       >
                         <Download className="w-5 h-5" />
                         Tải ảnh
-                      </button>
-                      <button
+                      </RippleButton>
+                      <RippleButton
                         type="button"
                         onClick={() => resetEmbedForm()}
                         className="btn btn-outline group"
                       >
                         <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
                         Làm lại
-                      </button>
+                      </RippleButton>
                     </div>
                   </motion.div>
                 )}

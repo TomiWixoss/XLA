@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Film, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, AlertTriangle, Play, RotateCcw } from 'lucide-react';
 import { useVideoEmbedForm } from '@/hooks/use-video-embed-form';
+import { AnimatedCounter, RippleButton } from '@/components/ui/micro-interactions';
 
 interface Props {
   isActive: boolean;
@@ -369,7 +370,7 @@ export function VideoScreen({ isActive }: Props) {
                       </div>
                     </div>
 
-                    <button
+                    <RippleButton
                       type="submit"
                       disabled={isEmbedPending}
                       className="btn btn-primary btn-block mt-6 group"
@@ -385,7 +386,7 @@ export function VideoScreen({ isActive }: Props) {
                           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </div>
                       )}
-                    </button>
+                    </RippleButton>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -410,15 +411,21 @@ export function VideoScreen({ isActive }: Props) {
 
                     <div className="metrics-grid">
                       <div className="metric-box">
-                        <div className="metric-value">{embedData.total_frames || 'N/A'}</div>
+                        <div className="metric-value counter">
+                          <AnimatedCounter value={embedData.total_frames || 0} duration={1} />
+                        </div>
                         <div className="metric-label">Frames</div>
                       </div>
                       <div className="metric-box">
-                        <div className="metric-value text-[var(--success)]">{embedData.watermarked_frames || 'N/A'}</div>
+                        <div className="metric-value text-[var(--success)] counter">
+                          <AnimatedCounter value={embedData.watermarked_frames || 0} duration={1.2} />
+                        </div>
                         <div className="metric-label">Đã WM</div>
                       </div>
                       <div className="metric-box">
-                        <div className="metric-value">{embedData.fps || 'N/A'}</div>
+                        <div className="metric-value counter">
+                          <AnimatedCounter value={embedData.fps || 0} duration={1} decimals={1} />
+                        </div>
                         <div className="metric-label">FPS</div>
                       </div>
                       <div className="metric-box">
@@ -428,7 +435,7 @@ export function VideoScreen({ isActive }: Props) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <button
+                      <RippleButton
                         type="button"
                         onClick={() => {
                           if (embedData.watermarked_video) {
@@ -442,15 +449,15 @@ export function VideoScreen({ isActive }: Props) {
                       >
                         <Download className="w-5 h-5" />
                         Tải video
-                      </button>
-                      <button
+                      </RippleButton>
+                      <RippleButton
                         type="button"
                         onClick={() => resetEmbedForm()}
                         className="btn btn-outline group"
                       >
                         <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
                         Làm lại
-                      </button>
+                      </RippleButton>
                     </div>
                   </motion.div>
                 )}

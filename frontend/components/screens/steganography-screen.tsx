@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X, RotateCcw, Copy } from 'lucide-react';
 import { useEmbedForm } from '@/hooks';
 import { useExtractForm } from '@/hooks/use-extract-form';
+import { AnimatedCounter, RippleButton } from '@/components/ui/micro-interactions';
 
 interface Props {
   isActive: boolean;
@@ -222,7 +223,7 @@ export function SteganographyScreen({ isActive }: Props) {
               className="space-y-5 h-full flex flex-col"
             >
               {/* Upload Card */}
-              <div className="panel-card group hover:border-[var(--steganography)] transition-colors">
+              <div className="panel-card group hover:border-[var(--steganography)] transition-all">
                 <div className="panel-header">
                   <h3 className="panel-title flex items-center gap-2">
                     <div className="w-8 h-8 bg-[var(--steganography)]/10 flex items-center justify-center">
@@ -374,10 +375,10 @@ export function SteganographyScreen({ isActive }: Props) {
                     )}
 
                     {/* Submit Button */}
-                    <button
+                    <RippleButton
                       type="submit"
                       disabled={isEmbedPending}
-                      className="btn btn-primary btn-block mt-6 group"
+                      className="btn btn-primary btn-block mt-6 group btn-split"
                     >
                       {isEmbedPending ? (
                         <div className="flex items-center gap-3">
@@ -390,7 +391,7 @@ export function SteganographyScreen({ isActive }: Props) {
                           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </div>
                       )}
-                    </button>
+                    </RippleButton>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -402,7 +403,7 @@ export function SteganographyScreen({ isActive }: Props) {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="result-card mt-auto"
+                    className="result-card mt-auto success-pulse"
                   >
                     <div className="result-header">
                       <div className="result-icon">
@@ -416,21 +417,27 @@ export function SteganographyScreen({ isActive }: Props) {
 
                     <div className="metrics-grid">
                       <div className="metric-box">
-                        <div className="metric-value">{embedData.message_length}</div>
+                        <div className="metric-value counter">
+                          <AnimatedCounter value={embedData.message_length || 0} duration={1} />
+                        </div>
                         <div className="metric-label">Ký tự</div>
                       </div>
                       <div className="metric-box">
-                        <div className="metric-value text-[var(--success)]">{embedData.psnr?.toFixed(1) || '∞'}</div>
-                        <div className="metric-label">PSNR dB</div>
+                        <div className="metric-value text-[var(--success)] counter">
+                          <AnimatedCounter value={embedData.psnr || 0} duration={1.2} decimals={1} suffix=" dB" />
+                        </div>
+                        <div className="metric-label">PSNR</div>
                       </div>
                       <div className="metric-box">
-                        <div className="metric-value">{embedData.ssim?.toFixed(4) || '1.0'}</div>
+                        <div className="metric-value counter">
+                          <AnimatedCounter value={embedData.ssim || 1} duration={1.4} decimals={4} />
+                        </div>
                         <div className="metric-label">SSIM</div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                      <button
+                      <RippleButton
                         type="button"
                         onClick={() => {
                           if (embedData.stego_image) {
@@ -440,19 +447,19 @@ export function SteganographyScreen({ isActive }: Props) {
                             link.click();
                           }
                         }}
-                        className="btn btn-primary group"
+                        className="btn btn-primary group btn-split"
                       >
-                        <Download className="w-5 h-5" />
+                        <Download className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         <span>Tải ảnh</span>
-                      </button>
-                      <button
+                      </RippleButton>
+                      <RippleButton
                         type="button"
                         onClick={() => resetEmbedForm()}
                         className="btn btn-outline group"
                       >
                         <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
                         <span>Làm lại</span>
-                      </button>
+                      </RippleButton>
                     </div>
                   </motion.div>
                 )}
@@ -470,7 +477,7 @@ export function SteganographyScreen({ isActive }: Props) {
               className="space-y-5 h-full flex flex-col"
             >
               {/* Upload Stego Image */}
-              <div className="panel-card group hover:border-[var(--steganography)] transition-colors">
+              <div className="panel-card group hover:border-[var(--steganography)] transition-all">
                 <div className="panel-header">
                   <h3 className="panel-title flex items-center gap-2">
                     <div className="w-8 h-8 bg-[var(--steganography)]/10 flex items-center justify-center">
@@ -565,10 +572,10 @@ export function SteganographyScreen({ isActive }: Props) {
                       </div>
                     </div>
 
-                    <button
+                    <RippleButton
                       type="submit"
                       disabled={isExtractPending}
-                      className="btn btn-primary btn-block mt-4"
+                      className="btn btn-primary btn-block mt-4 btn-split"
                     >
                       {isExtractPending ? (
                         <div className="flex items-center gap-3">
@@ -581,7 +588,7 @@ export function SteganographyScreen({ isActive }: Props) {
                           <span>Trích Xuất Tin Nhắn</span>
                         </div>
                       )}
-                    </button>
+                    </RippleButton>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -592,7 +599,7 @@ export function SteganographyScreen({ isActive }: Props) {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="result-card mt-auto"
+                    className="result-card mt-auto success-pulse"
                   >
                     <div className="result-header">
                       <div className="result-icon">
@@ -609,24 +616,24 @@ export function SteganographyScreen({ isActive }: Props) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mt-4">
-                      <button
+                      <RippleButton
                         type="button"
                         onClick={() => {
                           navigator.clipboard.writeText(extractData.message || '');
                         }}
                         className="btn btn-outline group"
                       >
-                        <Copy className="w-5 h-5" />
+                        <Copy className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         <span>Copy</span>
-                      </button>
-                      <button
+                      </RippleButton>
+                      <RippleButton
                         type="button"
                         onClick={() => resetExtractForm()}
                         className="btn btn-primary group"
                       >
                         <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
                         <span>Làm lại</span>
-                      </button>
+                      </RippleButton>
                     </div>
                   </motion.div>
                 )}
