@@ -10,7 +10,6 @@ export const embedWatermarkSchema = z.object({
 
 export const extractWatermarkSchema = z.object({
   watermarkSize: z.number().min(16).max(128),
-  arnoldIterations: z.number().min(1).max(20),
 });
 
 export type EmbedWatermarkInput = z.infer<typeof embedWatermarkSchema>;

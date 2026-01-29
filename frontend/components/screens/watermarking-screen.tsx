@@ -44,8 +44,11 @@ export function WatermarkingScreen({ isActive }: Props) {
     watermarkedPreview: extractWatermarkedPreview,
     originalImage: extractOriginalImage,
     originalPreview: extractOriginalPreview,
+    originalWatermark: extractOriginalWatermark,
+    originalWatermarkPreview: extractOriginalWatermarkPreview,
     handleWatermarkedImageChange: handleExtractWatermarkedChange,
     handleOriginalImageChange: handleExtractOriginalChange,
+    handleOriginalWatermarkChange: handleExtractOriginalWatermarkChange,
     onSubmit: onExtractSubmit,
     isPending: isExtractPending,
     data: extractData,
@@ -511,12 +514,12 @@ export function WatermarkingScreen({ isActive }: Props) {
                   <div className="panel-card border-dashed">
                     <div className="panel-header">
                       <h3 className="panel-title text-xs">WM gốc</h3>
-                      {extractForm.originalWatermark && <span className="w-5 h-5 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                      {extractOriginalWatermark && <span className="w-5 h-5 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
                     </div>
-                    <label className={`upload-zone block cursor-pointer min-h-[140px] flex items-center justify-center ${extractForm.originalWatermark ? 'has-file p-2' : ''}`}>
-                      <input type="file" accept="image/*" onChange={(e) => extractForm.handleOriginalWatermarkChange(e)} className="hidden" />
-                      {extractForm.originalWatermarkPreview ? (
-                        <img src={extractForm.originalWatermarkPreview} alt="WM gốc" className="max-h-24 mx-auto object-contain" />
+                    <label className={`upload-zone block cursor-pointer min-h-[140px] flex items-center justify-center ${extractOriginalWatermark ? 'has-file p-2' : ''}`}>
+                      <input type="file" accept="image/*" onChange={(e) => handleExtractOriginalWatermarkChange(e)} className="hidden" />
+                      {extractOriginalWatermarkPreview ? (
+                        <img src={extractOriginalWatermarkPreview} alt="WM gốc" className="max-h-24 mx-auto object-contain" />
                       ) : (
                         <div className="text-center">
                           <Shield className="w-6 h-6 mx-auto mb-1 text-[var(--muted-foreground)]" />
@@ -599,6 +602,32 @@ export function WatermarkingScreen({ isActive }: Props) {
                         <div className="metric-value text-[var(--success)]">{extractData.nc?.toFixed(3) || 'N/A'}</div>
                         <div className="metric-label">NC</div>
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-4">
+                      <RippleButton
+                        type="button"
+                        onClick={() => {
+                          if (extractData.extracted_watermark) {
+                            const link = document.createElement('a');
+                            link.href = extractData.extracted_watermark;
+                            link.download = 'extracted_watermark.png';
+                            link.click();
+                          }
+                        }}
+                        className="btn btn-primary"
+                      >
+                        <Download className="w-5 h-5" />
+                        Tải WM
+                      </RippleButton>
+                      <RippleButton
+                        type="button"
+                        onClick={() => resetExtractForm()}
+                        className="btn btn-outline group"
+                      >
+                        <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
+                        Làm lại
+                      </RippleButton>
                     </div>
                   </motion.div>
                 )}

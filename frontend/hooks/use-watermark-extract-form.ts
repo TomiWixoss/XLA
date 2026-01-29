@@ -21,7 +21,6 @@ export function useWatermarkExtractForm() {
     resolver: zodResolver(extractWatermarkSchema),
     defaultValues: {
       watermarkSize: 32,
-      arnoldIterations: 10,
     },
   });
 
@@ -63,7 +62,7 @@ export function useWatermarkExtractForm() {
       originalImage,
       originalWatermark: originalWatermark || undefined,
       watermarkSize: formData.watermarkSize,
-      arnoldIterations: formData.arnoldIterations,
+      arnoldIterations: 10, // Default value
     });
   };
 
