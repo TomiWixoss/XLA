@@ -16,7 +16,6 @@ export function useExtractForm() {
   const form = useForm<ExtractMessageInput>({
     resolver: zodResolver(extractMessageSchema),
     defaultValues: {
-      useDecryption: false,
       password: '',
     },
   });
@@ -34,9 +33,12 @@ export function useExtractForm() {
   const onSubmit = (formData: ExtractMessageInput) => {
     if (!stegoImage) return;
     
+    // Tự động bật decryption nếu có password
+    const useDecryption = !!(formData.password && formData.password.trim().length > 0);
+    
     extractMessage({
       stegoImage,
-      useDecryption: formData.useDecryption,
+      useDecryption,
       password: formData.password,
     });
   };

@@ -18,16 +18,7 @@ export const embedMessageSchema = z.object({
 });
 
 export const extractMessageSchema = z.object({
-  useDecryption: z.boolean(),
   password: z.string().optional(),
-}).refine((data) => {
-  if (data.useDecryption && !data.password) {
-    return false;
-  }
-  return true;
-}, {
-  message: 'Mật khẩu bắt buộc khi bật giải mã',
-  path: ['password'],
 });
 
 export type EmbedMessageInput = z.infer<typeof embedMessageSchema>;

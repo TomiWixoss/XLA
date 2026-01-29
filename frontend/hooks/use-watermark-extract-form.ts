@@ -12,6 +12,8 @@ export function useWatermarkExtractForm() {
   const [watermarkedPreview, setWatermarkedPreview] = useState<string>('');
   const [originalImage, setOriginalImage] = useState<File | null>(null);
   const [originalPreview, setOriginalPreview] = useState<string>('');
+  const [originalWatermark, setOriginalWatermark] = useState<File | null>(null);
+  const [originalWatermarkPreview, setOriginalWatermarkPreview] = useState<string>('');
   
   const { mutate: extractWatermark, isPending, data, reset: resetMutation } = useExtractWatermark();
   
@@ -43,12 +45,23 @@ export function useWatermarkExtractForm() {
     }
   };
 
+  const handleOriginalWatermarkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setOriginalWatermark(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setOriginalWatermarkPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
   const onSubmit = (formData: ExtractWatermarkInput) => {
     if (!watermarkedImage || !originalImage) return;
     
     extractWatermark({
       watermarkedImage,
       originalImage,
+      originalWatermark: originalWatermark || undefined,
       watermarkSize: formData.watermarkSize,
       arnoldIterations: formData.arnoldIterations,
     });
@@ -61,6 +74,8 @@ export function useWatermarkExtractForm() {
     setWatermarkedPreview('');
     setOriginalImage(null);
     setOriginalPreview('');
+    setOriginalWatermark(null);
+    setOriginalWatermarkPreview('');
     resetMutation();
   }, [form, resetMutation]);
 
@@ -70,8 +85,11 @@ export function useWatermarkExtractForm() {
     watermarkedPreview,
     originalImage,
     originalPreview,
+    originalWatermark,
+    originalWatermarkPreview,
     handleWatermarkedImageChange,
     handleOriginalImageChange,
+    handleOriginalWatermarkChange,
     onSubmit,
     isPending,
     data,

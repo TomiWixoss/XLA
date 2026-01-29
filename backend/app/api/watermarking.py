@@ -5,6 +5,7 @@ from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from fastapi.responses import FileResponse
 import tempfile
 import os
+import base64
 from app.core.watermarking import DCT_SVD_Watermark
 from app.core.utils import calculate_psnr, calculate_ssim, calculate_nc
 import cv2
@@ -39,9 +40,13 @@ async def embed_watermark(
         psnr = calculate_psnr(original_img, watermarked_img)
         ssim = calculate_ssim(original_img, watermarked_img)
         
+        # Read watermarked image as base64
+        with open(output_path, "rb") as f:
+            watermarked_base64 = base64.b64encode(f.read()).decode('utf-8')
+        
         result['psnr'] = psnr
         result['ssim'] = ssim
-        result['watermarked_image'] = output_path
+        result['watermarked_image'] = f"data:image/png;base64,{watermarked_base64}"
         
         return result
     except Exception as e:
@@ -51,6 +56,7 @@ async def embed_watermark(
 async def extract_watermark(
     watermarked_image: UploadFile = File(...),
     original_image: UploadFile = File(...),
+    original_watermark: UploadFile = File(None),
     watermark_size: int = Form(32),
     arnold_iterations: int = Form(10)
 ):
@@ -68,6 +74,32 @@ async def extract_watermark(
         watermarker = DCT_SVD_Watermark(arnold_iterations=arnold_iterations)
         extracted = watermarker.extract(wm_path, orig_path, watermark_size)
         
-        return {"extracted_watermark": extracted.tolist(), "size": watermark_size}
+        # Save extracted watermark
+        extracted_path = os.path.join(temp_dir, "extracted_watermark.png")
+        cv2.imwrite(extracted_path, extracted)
+        
+        # Convert to base64
+        with open(extracted_path, "rb") as f:
+            extracted_base64 = base64.b64encode(f.read()).decode('utf-8')
+        
+        result = {
+            "extracted_watermark": f"data:image/png;base64,{extracted_base64}",
+            "size": watermark_size
+        }
+        
+        # Calculate NC if original watermark provided
+        if original_watermark:
+            orig_wm_path = os.path.join(temp_dir, "original_watermark.png")
+            with open(orig_wm_path, "wb") as f:
+                f.write(await original_watermark.read())
+            
+            orig_wm = cv2.imread(orig_wm_path, cv2.IMREAD_GRAYSCALE)
+            # Resize to match extracted size
+            orig_wm_resized = cv2.resize(orig_wm, (watermark_size, watermark_size))
+            
+            nc = calculate_nc(orig_wm_resized, extracted)
+            result['nc'] = float(nc)
+        
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

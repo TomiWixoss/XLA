@@ -13,6 +13,7 @@ export interface EmbedWatermarkParams {
 export interface ExtractWatermarkParams {
   watermarkedImage: File;
   originalImage: File;
+  originalWatermark?: File;
   watermarkSize: number;
   arnoldIterations: number;
 }
@@ -54,6 +55,9 @@ export const watermarkingApi = {
     const formData = new FormData();
     formData.append('watermarked_image', params.watermarkedImage);
     formData.append('original_image', params.originalImage);
+    if (params.originalWatermark) {
+      formData.append('original_watermark', params.originalWatermark);
+    }
     formData.append('watermark_size', String(params.watermarkSize));
     formData.append('arnold_iterations', String(params.arnoldIterations));
 

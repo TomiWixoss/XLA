@@ -463,22 +463,22 @@ export function WatermarkingScreen({ isActive }: Props) {
               className="space-y-5 h-full flex flex-col"
             >
               {/* Dual Upload Grid */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 {/* Watermarked Image */}
                 <SkewOnHover maxSkew={2}>
                   <div className="panel-card">
                     <div className="panel-header">
-                      <h3 className="panel-title text-sm">Ảnh đã WM</h3>
-                      {extractWatermarkedImage && <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                      <h3 className="panel-title text-xs">Ảnh đã WM</h3>
+                      {extractWatermarkedImage && <span className="w-5 h-5 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
                     </div>
-                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${extractWatermarkedImage ? 'has-file p-2' : ''}`}>
+                    <label className={`upload-zone block cursor-pointer min-h-[140px] flex items-center justify-center ${extractWatermarkedImage ? 'has-file p-2' : ''}`}>
                       <input type="file" accept="image/*" onChange={(e) => handleExtractWatermarkedChange(e)} className="hidden" />
                       {extractWatermarkedPreview ? (
-                        <img src={extractWatermarkedPreview} alt="WM" className="max-h-32 mx-auto object-contain" />
+                        <img src={extractWatermarkedPreview} alt="WM" className="max-h-24 mx-auto object-contain" />
                       ) : (
                         <div className="text-center">
-                          <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                          <p className="text-xs">Ảnh có watermark</p>
+                          <Upload className="w-6 h-6 mx-auto mb-1 text-[var(--muted-foreground)]" />
+                          <p className="text-xs">Có WM</p>
                         </div>
                       )}
                     </label>
@@ -489,17 +489,39 @@ export function WatermarkingScreen({ isActive }: Props) {
                 <SkewOnHover maxSkew={2}>
                   <div className="panel-card">
                     <div className="panel-header">
-                      <h3 className="panel-title text-sm">Ảnh gốc</h3>
-                      {extractOriginalImage && <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                      <h3 className="panel-title text-xs">Ảnh gốc</h3>
+                      {extractOriginalImage && <span className="w-5 h-5 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
                     </div>
-                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${extractOriginalImage ? 'has-file p-2' : ''}`}>
+                    <label className={`upload-zone block cursor-pointer min-h-[140px] flex items-center justify-center ${extractOriginalImage ? 'has-file p-2' : ''}`}>
                       <input type="file" accept="image/*" onChange={(e) => handleExtractOriginalChange(e)} className="hidden" />
                       {extractOriginalPreview ? (
-                        <img src={extractOriginalPreview} alt="Original" className="max-h-32 mx-auto object-contain" />
+                        <img src={extractOriginalPreview} alt="Original" className="max-h-24 mx-auto object-contain" />
                       ) : (
                         <div className="text-center">
-                          <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                          <p className="text-xs">Ảnh gốc ban đầu</p>
+                          <Upload className="w-6 h-6 mx-auto mb-1 text-[var(--muted-foreground)]" />
+                          <p className="text-xs">Gốc</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </SkewOnHover>
+
+                {/* Original Watermark (Optional) */}
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card border-dashed">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-xs">WM gốc</h3>
+                      {extractForm.originalWatermark && <span className="w-5 h-5 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[140px] flex items-center justify-center ${extractForm.originalWatermark ? 'has-file p-2' : ''}`}>
+                      <input type="file" accept="image/*" onChange={(e) => extractForm.handleOriginalWatermarkChange(e)} className="hidden" />
+                      {extractForm.originalWatermarkPreview ? (
+                        <img src={extractForm.originalWatermarkPreview} alt="WM gốc" className="max-h-24 mx-auto object-contain" />
+                      ) : (
+                        <div className="text-center">
+                          <Shield className="w-6 h-6 mx-auto mb-1 text-[var(--muted-foreground)]" />
+                          <p className="text-xs opacity-75">Tùy chọn</p>
+                          <p className="text-xs opacity-50">(để tính NC)</p>
                         </div>
                       )}
                     </label>
