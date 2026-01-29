@@ -8,6 +8,7 @@ import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Film, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, AlertTriangle, Play, RotateCcw } from 'lucide-react';
 import { useVideoEmbedForm } from '@/hooks/use-video-embed-form';
+import { useVideoExtractForm } from '@/hooks/use-video-extract-form';
 import { AnimatedCounter, RippleButton } from '@/components/ui/micro-interactions';
 
 interface Props {
@@ -35,15 +36,32 @@ export function VideoScreen({ isActive }: Props) {
     resetAll: resetEmbedForm,
   } = embedForm;
 
+  // Extract form
+  const extractForm = useVideoExtractForm();
+  const {
+    form: extractFormState,
+    watermarkedVideo: extractWatermarkedVideo,
+    watermarkedPreview: extractWatermarkedPreview,
+    originalVideo: extractOriginalVideo,
+    originalPreview: extractOriginalPreview,
+    handleWatermarkedChange: handleExtractWatermarkedChange,
+    handleOriginalChange: handleExtractOriginalChange,
+    onSubmit: onExtractSubmit,
+    isPending: isExtractPending,
+    data: extractData,
+    resetAll: resetExtractForm,
+  } = extractForm;
+
   // Reset forms when switching mode
   const handleModeChange = useCallback((newMode: Mode) => {
     if (newMode === mode) return;
     setMode(newMode);
     resetEmbedForm();
-  }, [mode, resetEmbedForm]);
+    resetExtractForm();
+  }, [mode, resetEmbedForm, resetExtractForm]);
 
-  const isPending = isEmbedPending;
-  const result = embedData;
+  const isPending = mode === 'embed' ? isEmbedPending : isExtractPending;
+  const result = mode === 'embed' ? embedData : extractData;
 
   const alpha = embedFormState.watch('alpha');
   const frameSkip = embedFormState.watch('frameSkip');
@@ -464,33 +482,251 @@ export function VideoScreen({ isActive }: Props) {
               </AnimatePresence>
             </motion.form>
           ) : (
-            /* EXTRACT MODE - Simplified */
-            <motion.div 
+            /* EXTRACT MODE */
+            <motion.form 
               key="extract"
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.4 }}
-              className="flex items-center justify-center h-full"
+              onSubmit={extractFormState.handleSubmit(onExtractSubmit)} 
+              className="space-y-5 h-full flex flex-col"
             >
-              <div className="text-center max-w-md">
-                <div className="w-20 h-20 mx-auto mb-6 border-2 border-[var(--border)] flex items-center justify-center">
-                  <Search className="w-10 h-10 text-[var(--muted-foreground)]" />
+              {/* Dual Video Upload Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Watermarked Video */}
+                <div className="panel-card group hover:border-[var(--video)] transition-colors">
+                  <div className="panel-header">
+                    <h3 className="panel-title text-sm flex items-center gap-2">
+                      <Film className="w-4 h-4 text-[var(--video)]" />
+                      Video đã WM
+                    </h3>
+                    {extractWatermarkedVideo && (
+                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                    )}
+                  </div>
+                  <label className={`upload-zone block cursor-pointer min-h-[150px] flex items-center justify-center ${extractWatermarkedVideo ? 'has-file p-2' : ''}`}>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/avi"
+                      onChange={(e) => handleExtractWatermarkedChange(e)}
+                      className="hidden"
+                    />
+                    {extractWatermarkedPreview ? (
+                      <div className="relative w-full">
+                        <video 
+                          src={extractWatermarkedPreview} 
+                          className="max-h-24 mx-auto object-contain"
+                          muted
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
+                            <Play className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                        <p className="text-xs text-[var(--muted-foreground)]">Video có watermark</p>
+                      </div>
+                    )}
+                  </label>
                 </div>
-                <h3 className="text-xl font-bold mb-3">Trích xuất Video</h3>
-                <p className="text-[var(--muted-foreground)] text-sm">
-                  Tính năng trích xuất watermark từ video đang được phát triển. 
-                  Vui lòng sử dụng tính năng nhúng để bảo vệ video của bạn.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => handleModeChange('embed')}
-                  className="btn btn-outline mt-6"
-                >
-                  ← Quay lại nhúng
-                </button>
+
+                {/* Original Video */}
+                <div className="panel-card group hover:border-[var(--video)] transition-colors">
+                  <div className="panel-header">
+                    <h3 className="panel-title text-sm flex items-center gap-2">
+                      <Film className="w-4 h-4 text-[var(--video)]" />
+                      Video gốc
+                    </h3>
+                    {extractOriginalVideo && (
+                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                    )}
+                  </div>
+                  <label className={`upload-zone block cursor-pointer min-h-[150px] flex items-center justify-center ${extractOriginalVideo ? 'has-file p-2' : ''}`}>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/avi"
+                      onChange={(e) => handleExtractOriginalChange(e)}
+                      className="hidden"
+                    />
+                    {extractOriginalPreview ? (
+                      <div className="relative w-full">
+                        <video 
+                          src={extractOriginalPreview} 
+                          className="max-h-24 mx-auto object-contain"
+                          muted
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-8 h-8 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
+                            <Play className="w-4 h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                        <p className="text-xs text-[var(--muted-foreground)]">Video gốc (chưa WM)</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
               </div>
-            </motion.div>
+
+              {/* Configuration */}
+              <AnimatePresence>
+                {extractWatermarkedVideo && extractOriginalVideo && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card"
+                  >
+                    <div className="panel-header">
+                      <h3 className="panel-title flex items-center gap-2">
+                        <Settings className="w-4 h-4 text-[var(--video)]" />
+                        Cấu hình trích xuất
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Frame Number */}
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Frame số</span>
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          {...extractFormState.register('frameNumber', { valueAsNumber: true })}
+                          className="field-input"
+                        />
+                      </div>
+
+                      {/* Watermark Size */}
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Size WM</span>
+                        </div>
+                        <input
+                          type="number"
+                          min="32"
+                          max="256"
+                          {...extractFormState.register('watermarkSize', { valueAsNumber: true })}
+                          className="field-input"
+                        />
+                      </div>
+
+                      {/* Arnold Iterations */}
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Arnold</span>
+                        </div>
+                        <input
+                          type="number"
+                          min="1"
+                          max="50"
+                          {...extractFormState.register('arnoldIterations', { valueAsNumber: true })}
+                          className="field-input"
+                        />
+                      </div>
+                    </div>
+
+                    <RippleButton
+                      type="submit"
+                      disabled={isExtractPending}
+                      className="btn btn-primary btn-block mt-6 group"
+                    >
+                      {isExtractPending ? (
+                        <div className="flex items-center gap-3">
+                          <div className="loading-spinner w-5 h-5" />
+                          <span>Đang trích xuất...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <Search className="w-5 h-5" />
+                          <span>Trích Xuất Watermark</span>
+                        </div>
+                      )}
+                    </RippleButton>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Extract Result */}
+              <AnimatePresence>
+                {extractData && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="result-card mt-auto"
+                  >
+                    <div className="result-header">
+                      <div className="result-icon">
+                        <Check className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="result-title">Trích xuất thành công!</div>
+                        <div className="result-subtitle">Đã tìm thấy watermark</div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border-2 border-[var(--border)] bg-[var(--secondary)]">
+                      {extractData.extracted_watermark && (
+                        <img 
+                          src={extractData.extracted_watermark} 
+                          alt="Extracted Watermark" 
+                          className="max-h-32 mx-auto object-contain"
+                        />
+                      )}
+                    </div>
+
+                    <div className="metrics-grid mt-4">
+                      <div className="metric-box">
+                        <div className="metric-value counter">
+                          <AnimatedCounter value={extractData.frame_number || 0} duration={1} />
+                        </div>
+                        <div className="metric-label">Frame</div>
+                      </div>
+                      <div className="metric-box">
+                        <div className="metric-value counter">
+                          <AnimatedCounter value={extractData.watermark_size || 0} duration={1} />
+                        </div>
+                        <div className="metric-label">Size</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mt-4">
+                      <RippleButton
+                        type="button"
+                        onClick={() => {
+                          if (extractData.extracted_watermark) {
+                            const link = document.createElement('a');
+                            link.href = extractData.extracted_watermark;
+                            link.download = 'extracted_watermark.png';
+                            link.click();
+                          }
+                        }}
+                        className="btn btn-primary"
+                      >
+                        <Download className="w-5 h-5" />
+                        Tải WM
+                      </RippleButton>
+                      <RippleButton
+                        type="button"
+                        onClick={() => resetExtractForm()}
+                        className="btn btn-outline group"
+                      >
+                        <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
+                        Làm lại
+                      </RippleButton>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.form>
           )}
         </AnimatePresence>
       </motion.div>

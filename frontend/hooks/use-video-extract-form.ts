@@ -1,7 +1,7 @@
 /**
  * Custom Hook for Video Extract Form Logic
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { extractVideoWatermarkSchema, type ExtractVideoWatermarkInput } from '@/lib/validations/video.schema';
@@ -13,7 +13,7 @@ export function useVideoExtractForm() {
   const [originalVideo, setOriginalVideo] = useState<File | null>(null);
   const [originalPreview, setOriginalPreview] = useState<string>('');
   
-  const { mutate: extractWatermark, isPending, data } = useExtractVideoWatermark();
+  const { mutate: extractWatermark, isPending, data, reset: resetMutation } = useExtractVideoWatermark();
   
   const form = useForm<ExtractVideoWatermarkInput>({
     resolver: zodResolver(extractVideoWatermarkSchema),
@@ -54,6 +54,17 @@ export function useVideoExtractForm() {
     });
   };
 
+  const resetAll = useCallback(() => {
+    form.reset();
+    if (watermarkedPreview) URL.revokeObjectURL(watermarkedPreview);
+    if (originalPreview) URL.revokeObjectURL(originalPreview);
+    setWatermarkedVideo(null);
+    setWatermarkedPreview('');
+    setOriginalVideo(null);
+    setOriginalPreview('');
+    resetMutation();
+  }, [form, watermarkedPreview, originalPreview, resetMutation]);
+
   return {
     form,
     watermarkedVideo,
@@ -65,5 +76,7 @@ export function useVideoExtractForm() {
     onSubmit,
     isPending,
     data,
+    resetAll,
   };
 }
+
