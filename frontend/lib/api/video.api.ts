@@ -9,14 +9,21 @@ export interface EmbedVideoWatermarkParams {
   alpha: number;
   frameSkip: number;
   arnoldIterations: number;
+  useSceneDetection?: boolean;
+  sceneThreshold?: number;
 }
 
 export interface EmbedVideoWatermarkResponse {
   success: boolean;
   total_frames: number;
   watermarked_frames: number;
+  scene_changes_detected?: number;
+  scene_changes_watermarked?: number;
   fps: number;
   resolution: string;
+  frame_skip: number;
+  scene_detection_enabled?: boolean;
+  efficiency_improvement?: string;
   watermarked_video: string;
 }
 

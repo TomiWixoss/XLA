@@ -8,7 +8,7 @@ import os
 import base64
 import json
 import asyncio
-from app.core.watermarking import DCT_SVD_Watermark
+from app.core.watermarking import DWT_DCT_SVD_Watermark
 from app.core.utils import calculate_psnr, calculate_ssim, calculate_nc
 import cv2
 
@@ -60,36 +60,22 @@ async def embed_watermark(
             await asyncio.sleep(0.1)
             
             # Bước 3: Nhúng watermark
-            yield f"data: {json.dumps({'stage': 'embedding', 'progress': 0, 'message': 'Đang nhúng watermark...'})}\n\n"
+            yield f"data: {json.dumps({'stage': 'embedding', 'progress': 0, 'message': 'Đang nhúng watermark bằng DWT-DCT-SVD...'})}\n\n"
             await asyncio.sleep(0.1)
             
-            watermarker = DCT_SVD_Watermark(alpha=alpha, arnold_iterations=arnold_iterations)
+            watermarker = DWT_DCT_SVD_Watermark(alpha=alpha, arnold_iterations=arnold_iterations, use_dwt=True, wavelet='haar')
             result = watermarker.embed(host_path, wm_path, output_path)
             
             yield f"data: {json.dumps({'stage': 'embedding', 'progress': 100, 'message': 'Đã nhúng xong watermark'})}\n\n"
             await asyncio.sleep(0.1)
             
-            # Bước 4: Tính metrics
-            yield f"data: {json.dumps({'stage': 'metrics', 'progress': 0, 'message': 'Đang tính chất lượng...'})}\n\n"
-            await asyncio.sleep(0.1)
-            
-            original_img = cv2.imread(host_path)
-            watermarked_img = cv2.imread(output_path)
-            psnr = calculate_psnr(original_img, watermarked_img)
-            ssim = calculate_ssim(original_img, watermarked_img)
-            
-            yield f"data: {json.dumps({'stage': 'metrics', 'progress': 100, 'message': 'Đã tính xong metrics'})}\n\n"
-            await asyncio.sleep(0.1)
-            
-            # Bước 5: Encode
+            # Bước 4: Encode (metrics đã có trong result từ core)
             yield f"data: {json.dumps({'stage': 'encoding', 'progress': 0, 'message': 'Đang mã hóa ảnh...'})}\n\n"
             await asyncio.sleep(0.1)
             
             with open(output_path, "rb") as f:
                 watermarked_base64 = base64.b64encode(f.read()).decode('utf-8')
             
-            result['psnr'] = psnr
-            result['ssim'] = ssim
             result['watermarked_image'] = f"data:image/png;base64,{watermarked_base64}"
             
             # Hoàn thành
@@ -148,10 +134,10 @@ async def extract_watermark(
             await asyncio.sleep(0.1)
             
             # Bước 3: Trích xuất
-            yield f"data: {json.dumps({'stage': 'extracting', 'progress': 0, 'message': 'Đang trích xuất watermark...'})}\n\n"
+            yield f"data: {json.dumps({'stage': 'extracting', 'progress': 0, 'message': 'Đang trích xuất watermark bằng DWT-DCT-SVD...'})}\n\n"
             await asyncio.sleep(0.1)
             
-            watermarker = DCT_SVD_Watermark(arnold_iterations=arnold_iterations)
+            watermarker = DWT_DCT_SVD_Watermark(arnold_iterations=arnold_iterations, use_dwt=True, wavelet='haar')
             extracted = watermarker.extract(wm_path, orig_path, watermark_size)
             
             # Save extracted watermark
