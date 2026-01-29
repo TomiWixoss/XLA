@@ -4,6 +4,7 @@ FastAPI Backend - PyStegoWatermark Suite
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import steganography, watermarking, video
+import os
 
 app = FastAPI(
     title="PyStegoWatermark API",
@@ -11,10 +12,23 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS
+# CORS - Allow frontend domains
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "https://*.vercel.app",
+    "https://*.netlify.app",
+    "https://*.render.com",
+]
+
+# Get frontend URL from environment variable if available
+frontend_url = os.getenv("FRONTEND_URL")
+if frontend_url:
+    allowed_origins.append(frontend_url)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,8 +41,24 @@ app.include_router(video.router, prefix="/api/video", tags=["Video"])
 
 @app.get("/")
 async def root():
-    return {"message": "PyStegoWatermark API", "version": "1.0.0"}
+    return {
+        "message": "PyStegoWatermark API",
+        "version": "1.0.0",
+        "status": "running",
+        "endpoints": {
+            "health": "/health",
+            "docs": "/docs",
+            "steganography": "/api/steganography",
+            "watermarking": "/api/watermarking",
+            "video": "/api/video"
+        }
+    }
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """Health check endpoint for monitoring"""
+    return {
+        "status": "healthy",
+        "service": "PyStegoWatermark API",
+        "version": "1.0.0"
+    }
