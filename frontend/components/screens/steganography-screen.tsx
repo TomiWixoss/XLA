@@ -683,10 +683,42 @@ export function SteganographyScreen({ isActive }: Props) {
           >
             <div className="loading-spinner" />
             <div className="loading-text">
-              {mode === 'embed' ? 'Đang nhúng tin nhắn...' : 'Đang trích xuất...'}
+              {progressState?.message || (mode === 'embed' ? 'Đang nhúng tin nhắn...' : 'Đang trích xuất...')}
+            </div>
+            <div className="loading-subtext">
+              {progressState?.stage === 'upload' && 'Đang tải ảnh lên server'}
+              {progressState?.stage === 'validate' && 'Đang xác thực ảnh'}
+              {progressState?.stage === 'embedding' && 'Đang nhúng tin nhắn vào ảnh'}
+              {progressState?.stage === 'extracting' && 'Đang trích xuất tin nhắn'}
+              {progressState?.stage === 'metrics' && 'Đang tính toán chất lượng'}
+              {progressState?.stage === 'encoding' && 'Đang mã hóa kết quả'}
+              {progressState?.stage === 'complete' && 'Hoàn tất!'}
+              {!progressState?.stage && 'Vui lòng đợi...'}
             </div>
             <div className="loading-progress">
-              <div className="loading-progress-bar" />
+              <div 
+                className="loading-progress-bar" 
+                style={{ 
+                  width: `${progressState?.progress || 0}%`,
+                  animation: progressState?.progress === 100 ? 'none' : undefined
+                }} 
+              />
+            </div>
+            
+            {/* Loading Steps */}
+            <div className="loading-steps">
+              <div className={`loading-step ${['upload', 'validate', 'embedding', 'extracting', 'metrics', 'encoding', 'complete'].includes(progressState?.stage || '') ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Tải lên</div>
+              </div>
+              <div className={`loading-step ${['embedding', 'extracting', 'metrics', 'encoding', 'complete'].includes(progressState?.stage || '') ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Xử lý</div>
+              </div>
+              <div className={`loading-step ${progressState?.stage === 'complete' ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Hoàn thành</div>
+              </div>
             </div>
           </motion.div>
         )}

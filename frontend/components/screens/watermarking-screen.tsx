@@ -7,8 +7,8 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, RotateCcw, AlertTriangle } from 'lucide-react';
-import { useWatermarkEmbedForm } from '@/hooks/use-watermark-embed-form';
-import { useWatermarkExtractForm } from '@/hooks/use-watermark-extract-form';
+import { useWatermarkEmbedSSE } from '@/hooks/use-watermark-embed-sse';
+import { useWatermarkExtractSSE } from '@/hooks/use-watermark-extract-sse';
 import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
 
 interface Props {
@@ -21,7 +21,7 @@ export function WatermarkingScreen({ isActive }: Props) {
   const [mode, setMode] = useState<Mode>('embed');
   
   // Embed form
-  const embedForm = useWatermarkEmbedForm();
+  const embedForm = useWatermarkEmbedSSE();
   const {
     form: embedFormState,
     hostImage: embedHostImage,
@@ -34,11 +34,12 @@ export function WatermarkingScreen({ isActive }: Props) {
     isPending: isEmbedPending,
     data: embedData,
     error: embedError,
+    progressState: embedProgressState,
     resetAll: resetEmbedForm,
   } = embedForm;
 
   // Extract form
-  const extractForm = useWatermarkExtractForm();
+  const extractForm = useWatermarkExtractSSE();
   const {
     form: extractFormState,
     watermarkedImage: extractWatermarkedImage,
@@ -54,6 +55,7 @@ export function WatermarkingScreen({ isActive }: Props) {
     isPending: isExtractPending,
     data: extractData,
     error: extractError,
+    progressState: extractProgressState,
     resetAll: resetExtractForm,
   } = extractForm;
 
@@ -67,6 +69,7 @@ export function WatermarkingScreen({ isActive }: Props) {
 
   const isPending = mode === 'embed' ? isEmbedPending : isExtractPending;
   const result = mode === 'embed' ? embedData : extractData;
+  const progressState = mode === 'embed' ? embedProgressState : extractProgressState;
 
   const alpha = embedFormState.watch('alpha');
   const arnoldIterations = embedFormState.watch('arnoldIterations');
@@ -696,9 +699,43 @@ export function WatermarkingScreen({ isActive }: Props) {
             className="loading-overlay"
           >
             <div className="loading-spinner" />
-            <div className="loading-text">Đang xử lý watermark...</div>
+            <div className="loading-text">
+              {progressState?.message || 'Đang xử lý watermark...'}
+            </div>
+            <div className="loading-subtext">
+              {progressState?.stage === 'upload' && 'Đang tải ảnh lên server'}
+              {progressState?.stage === 'validate' && 'Đang xác thực ảnh'}
+              {progressState?.stage === 'embedding' && 'Đang nhúng watermark vào ảnh'}
+              {progressState?.stage === 'extracting' && 'Đang trích xuất watermark'}
+              {progressState?.stage === 'metrics' && 'Đang tính toán chất lượng'}
+              {progressState?.stage === 'encoding' && 'Đang mã hóa kết quả'}
+              {progressState?.stage === 'complete' && 'Hoàn tất!'}
+              {!progressState?.stage && 'Vui lòng đợi...'}
+            </div>
             <div className="loading-progress">
-              <div className="loading-progress-bar" />
+              <div 
+                className="loading-progress-bar" 
+                style={{ 
+                  width: `${progressState?.progress || 0}%`,
+                  animation: progressState?.progress === 100 ? 'none' : undefined
+                }} 
+              />
+            </div>
+            
+            {/* Loading Steps */}
+            <div className="loading-steps">
+              <div className={`loading-step ${['upload', 'validate', 'embedding', 'extracting', 'metrics', 'encoding', 'complete'].includes(progressState?.stage || '') ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Tải lên</div>
+              </div>
+              <div className={`loading-step ${['embedding', 'extracting', 'metrics', 'encoding', 'complete'].includes(progressState?.stage || '') ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Xử lý</div>
+              </div>
+              <div className={`loading-step ${progressState?.stage === 'complete' ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Hoàn thành</div>
+              </div>
             </div>
           </motion.div>
         )}
