@@ -538,6 +538,12 @@ export function VideoScreen({ isActive }: Props) {
                         <div className="metric-value">{embedData.resolution || 'N/A'}</div>
                         <div className="metric-label">Res</div>
                       </div>
+                      {embedData.watermark_size && (
+                        <div className="metric-box">
+                          <div className="metric-value text-[var(--primary)]">{embedData.watermark_size}</div>
+                          <div className="metric-label">WM Size</div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mt-4">

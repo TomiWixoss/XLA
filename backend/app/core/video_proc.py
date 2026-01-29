@@ -159,6 +159,7 @@ class VideoWatermark:
         frame_count = 0
         watermarked_count = 0
         scene_changes_used = 0
+        watermark_size_result = None  # Lưu watermark size từ frame đầu tiên
         
         print(f"Processing video: {total_frames} frames, {fps} FPS")
         print(f"Scene detection: {'Enabled' if self.use_scene_detection else 'Disabled'}")
@@ -178,7 +179,12 @@ class VideoWatermark:
                 
                 # Nhúng watermark
                 try:
-                    self.watermarker.embed(temp_frame_path, watermark_path, temp_watermarked_path)
+                    embed_result = self.watermarker.embed(temp_frame_path, watermark_path, temp_watermarked_path)
+                    
+                    # Lưu watermark_size từ frame đầu tiên
+                    if watermarked_count == 0 and 'watermark_size' in embed_result:
+                        watermark_size_result = embed_result['watermark_size']
+                    
                     watermarked_frame = cv2.imread(temp_watermarked_path)
                     out.write(watermarked_frame)
                     watermarked_count += 1
@@ -227,7 +233,8 @@ class VideoWatermark:
             'resolution': f"{width}x{height}",
             'frame_skip': self.frame_skip,
             'scene_detection_enabled': self.use_scene_detection,
-            'efficiency_improvement': f"{(1 - watermarked_count/total_frames) * 100:.1f}% fewer frames processed"
+            'efficiency_improvement': f"{(1 - watermarked_count/total_frames) * 100:.1f}% fewer frames processed",
+            'watermark_size': watermark_size_result  # Thêm watermark size
         }
     
     def extract_from_frame(self, video_path, original_video_path, frame_number, watermark_size):
