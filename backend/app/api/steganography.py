@@ -78,9 +78,10 @@ async def embed_message(
             await asyncio.sleep(0.1)
             
             with open(stego_path, "rb") as f:
-                stego_base64 = base64.b64encode(f.read()).decode('utf-8')
+                stego_bytes = f.read()
+                stego_base64 = base64.b64encode(stego_bytes).decode('utf-8')
             
-            # Hoàn thành
+            # Hoàn thành - Gửi result nhỏ gọn, ảnh sẽ gửi riêng
             final_result = {
                 "success": True,
                 "message_length": result['message_length'],
@@ -93,7 +94,15 @@ async def embed_message(
                 "stego_image": f"data:image/png;base64,{stego_base64}"
             }
             
-            yield f"data: {json.dumps({'stage': 'complete', 'progress': 100, 'message': 'Hoàn thành!', 'result': final_result})}\n\n"
+            # Sử dụng json.dumps với ensure_ascii=False để tránh lỗi encoding
+            result_json = json.dumps({
+                'stage': 'complete', 
+                'progress': 100, 
+                'message': 'Hoàn thành!', 
+                'result': final_result
+            }, ensure_ascii=False)
+            
+            yield f"data: {result_json}\n\n"
             
         except Exception as e:
             yield f"data: {json.dumps({'stage': 'error', 'message': str(e)})}\n\n"

@@ -91,8 +91,8 @@ class LSB_Stego:
         """
         l = 2 ** k  # 2^k
         
-        # Tính difference
-        diff = stego_pixel - original_pixel
+        # Tính difference (ép kiểu sang int để tránh overflow)
+        diff = int(stego_pixel) - int(original_pixel)
         
         # OPAP adjustment theo paper
         if diff > l / 2:
