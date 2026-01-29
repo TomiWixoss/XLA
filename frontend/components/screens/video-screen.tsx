@@ -7,8 +7,8 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Film, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, Search, AlertTriangle, Play, RotateCcw } from 'lucide-react';
-import { useVideoEmbedForm } from '@/hooks/use-video-embed-form';
-import { useVideoExtractForm } from '@/hooks/use-video-extract-form';
+import { useVideoEmbedSSE } from '@/hooks/use-video-embed-sse';
+import { useVideoExtractSSE } from '@/hooks/use-video-extract-sse';
 import { AnimatedCounter, RippleButton, SkewOnHover } from '@/components/ui/micro-interactions';
 
 interface Props {
@@ -21,7 +21,7 @@ export function VideoScreen({ isActive }: Props) {
   const [mode, setMode] = useState<Mode>('embed');
   
   // Embed form
-  const embedForm = useVideoEmbedForm();
+  const embedForm = useVideoEmbedSSE();
   const {
     form: embedFormState,
     videoFile: embedVideoFile,
@@ -34,11 +34,12 @@ export function VideoScreen({ isActive }: Props) {
     isPending: isEmbedPending,
     data: embedData,
     error: embedError,
+    progressState: embedProgressState,
     resetAll: resetEmbedForm,
   } = embedForm;
 
   // Extract form
-  const extractForm = useVideoExtractForm();
+  const extractForm = useVideoExtractSSE();
   const {
     form: extractFormState,
     watermarkedVideo: extractWatermarkedVideo,
@@ -51,6 +52,7 @@ export function VideoScreen({ isActive }: Props) {
     isPending: isExtractPending,
     data: extractData,
     error: extractError,
+    progressState: extractProgressState,
     resetAll: resetExtractForm,
   } = extractForm;
 
@@ -64,6 +66,7 @@ export function VideoScreen({ isActive }: Props) {
 
   const isPending = mode === 'embed' ? isEmbedPending : isExtractPending;
   const result = mode === 'embed' ? embedData : extractData;
+  const progressState = mode === 'embed' ? embedProgressState : extractProgressState;
 
   const alpha = embedFormState.watch('alpha');
   const frameSkip = embedFormState.watch('frameSkip');
@@ -792,9 +795,36 @@ export function VideoScreen({ isActive }: Props) {
             className="loading-overlay"
           >
             <div className="loading-spinner" />
-            <div className="loading-text">Đang xử lý video... (có thể mất vài phút)</div>
+            <div className="loading-text">
+              {progressState?.message || 'Đang xử lý...'}
+            </div>
+            <div className="loading-subtext">
+              {progressState?.stage === 'upload' && 'Đang tải files lên server'}
+              {progressState?.stage === 'init' && 'Đang khởi tạo và kiểm tra video'}
+              {progressState?.stage === 'validate' && 'Đang xác thực dữ liệu'}
+              {progressState?.stage === 'processing' && 'Đang xử lý từng frame (có thể mất vài phút)'}
+              {progressState?.stage === 'extracting' && 'Đang trích xuất watermark từ frame'}
+              {progressState?.stage === 'encoding' && 'Đang mã hóa kết quả'}
+              {progressState?.stage === 'complete' && 'Hoàn tất xử lý!'}
+            </div>
             <div className="loading-progress">
-              <div className="loading-progress-bar" />
+              <div className="loading-progress-bar" style={{ width: `${progressState?.progress || 0}%` }} />
+            </div>
+            
+            {/* Loading Steps */}
+            <div className="loading-steps">
+              <div className={`loading-step ${progressState?.stage === 'upload' || progressState?.stage === 'init' || progressState?.stage === 'validate' || progressState?.stage === 'processing' || progressState?.stage === 'extracting' || progressState?.stage === 'encoding' || progressState?.stage === 'complete' ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Tải lên</div>
+              </div>
+              <div className={`loading-step ${progressState?.stage === 'processing' || progressState?.stage === 'extracting' || progressState?.stage === 'encoding' || progressState?.stage === 'complete' ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Xử lý</div>
+              </div>
+              <div className={`loading-step ${progressState?.stage === 'complete' ? 'active' : ''}`}>
+                <div className="loading-step-dot" />
+                <div className="loading-step-label">Hoàn thành</div>
+              </div>
             </div>
           </motion.div>
         )}

@@ -7,8 +7,8 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X, RotateCcw, Copy, AlertTriangle } from 'lucide-react';
-import { useEmbedForm } from '@/hooks';
-import { useExtractForm } from '@/hooks/use-extract-form';
+import { useEmbedSSE } from '@/hooks/use-embed-sse';
+import { useExtractSSE } from '@/hooks/use-extract-sse';
 import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
 
 interface Props {
@@ -22,7 +22,7 @@ export function SteganographyScreen({ isActive }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   
   // Embed form
-  const embedForm = useEmbedForm();
+  const embedForm = useEmbedSSE();
   const { 
     form: embedFormState,
     coverImage: embedCoverImage,
@@ -32,11 +32,12 @@ export function SteganographyScreen({ isActive }: Props) {
     isPending: isEmbedPending,
     data: embedData,
     error: embedError,
+    progressState: embedProgressState,
     resetAll: resetEmbedForm,
   } = embedForm;
 
   // Extract form
-  const extractForm = useExtractForm();
+  const extractForm = useExtractSSE();
   const {
     form: extractFormState,
     stegoImage: extractStegoImage,
@@ -46,6 +47,7 @@ export function SteganographyScreen({ isActive }: Props) {
     isPending: isExtractPending,
     data: extractData,
     error: extractError,
+    progressState: extractProgressState,
     resetAll: resetExtractForm,
   } = extractForm;
 
@@ -62,6 +64,7 @@ export function SteganographyScreen({ isActive }: Props) {
   const currentPreview = mode === 'embed' ? embedCoverPreview : extractStegoPreview;
   const isPending = mode === 'embed' ? isEmbedPending : isExtractPending;
   const result = mode === 'embed' ? embedData : extractData;
+  const progressState = mode === 'embed' ? embedProgressState : extractProgressState;
 
   // Calculate step
   const getStep = () => {
