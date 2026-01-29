@@ -407,7 +407,7 @@ export function VideoScreen({ isActive }: Props) {
                     </div>
 
                     {/* Scene Detection - NEW FEATURE */}
-                    <div className={`mt-6 p-4 border-2 border-[var(--primary)]/20 bg-[var(--primary)]/5 ${!embedFormState.watch('useSceneDetection') ? 'pb-0' : ''}`}>
+                    <div className="mt-6 p-4 border-2 border-[var(--primary)]/20 bg-[var(--primary)]/5">
                       <div className={`flex items-center justify-between ${embedFormState.watch('useSceneDetection') ? 'mb-4' : ''}`}>
                         <div className="flex items-center gap-2">
                           <Sparkles className="w-4 h-4 text-[var(--primary)]" />
