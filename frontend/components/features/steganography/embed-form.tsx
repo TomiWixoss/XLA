@@ -105,11 +105,28 @@ export function EmbedForm() {
       {data && (
         <Card className="p-6 bg-green-50 dark:bg-green-950">
           <h3 className="font-semibold mb-2">Thành công!</h3>
-          <div className="space-y-1 text-sm">
+          <div className="space-y-1 text-sm mb-4">
             <p>Độ dài tin nhắn: {data.message_length} ký tự</p>
             <p>PSNR: {data.psnr.toFixed(2)} dB</p>
             <p>SSIM: {data.ssim.toFixed(4)}</p>
           </div>
+          <Button 
+            type="button"
+            onClick={() => {
+              if (data.stego_image_blob) {
+                const url = URL.createObjectURL(data.stego_image_blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'stego_image.png';
+                link.click();
+                URL.revokeObjectURL(url);
+              }
+            }}
+            className="w-full"
+            disabled={!data.stego_image_blob}
+          >
+            Tải Ảnh Stego
+          </Button>
         </Card>
       )}
     </form>

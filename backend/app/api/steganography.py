@@ -40,9 +40,19 @@ async def embed_message(
         
         result['psnr'] = psnr
         result['ssim'] = ssim
-        result['stego_image'] = stego_path
         
-        return result
+        # Return file
+        return FileResponse(
+            stego_path,
+            media_type="image/png",
+            filename="stego_image.png",
+            headers={
+                "X-Message-Length": str(result['message_length']),
+                "X-PSNR": str(psnr),
+                "X-SSIM": str(ssim),
+                "X-Bits-Used": str(result['bits_used']),
+            }
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

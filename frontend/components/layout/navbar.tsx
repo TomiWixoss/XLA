@@ -5,6 +5,7 @@
 
 import { motion } from 'framer-motion';
 import { Shield } from 'lucide-react';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export function Navbar() {
   return (
@@ -29,6 +30,7 @@ export function Navbar() {
           <a href="#video" className="text-sm hover:text-blue-600 transition-colors">
             Video
           </a>
+          <ThemeToggle />
         </div>
       </div>
     </motion.nav>

@@ -122,7 +122,7 @@ export function WatermarkEmbedForm() {
       {data && (
         <Card className="p-6 bg-green-50 dark:bg-green-950">
           <h3 className="font-semibold mb-2">Thành công!</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
             <div>
               <p className="text-muted-foreground">Kích thước WM</p>
               <p className="font-semibold">{data.watermark_size}</p>
@@ -140,6 +140,18 @@ export function WatermarkEmbedForm() {
               <p className="font-semibold">{data.ssim.toFixed(4)}</p>
             </div>
           </div>
+          <Button 
+            type="button"
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = data.watermarked_image;
+              link.download = 'watermarked_image.png';
+              link.click();
+            }}
+            className="w-full"
+          >
+            Tải Ảnh Đã Watermark
+          </Button>
         </Card>
       )}
     </form>

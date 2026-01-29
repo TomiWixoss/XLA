@@ -131,7 +131,7 @@ export function VideoEmbedForm() {
       {data && (
         <Card className="p-6 bg-green-50 dark:bg-green-950">
           <h3 className="font-semibold mb-2">Xử lý video thành công!</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-4">
             <div>
               <p className="text-muted-foreground">Tổng khung hình</p>
               <p className="font-semibold">{data.total_frames}</p>
@@ -149,6 +149,18 @@ export function VideoEmbedForm() {
               <p className="font-semibold">{data.resolution}</p>
             </div>
           </div>
+          <Button 
+            type="button"
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = data.watermarked_video;
+              link.download = 'watermarked_video.mp4';
+              link.click();
+            }}
+            className="w-full"
+          >
+            Tải Video Đã Watermark
+          </Button>
         </Card>
       )}
     </form>
