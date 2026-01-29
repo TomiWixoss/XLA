@@ -178,7 +178,12 @@ class DWT_DCT_SVD_Watermark:
         
         # Watermark size = sqrt(số blocks / 2) để cân bằng giữa capacity và quality
         watermark_size = int(np.sqrt(num_blocks_h * num_blocks_w // 2))
-        watermark_size = min(watermark_size, 64)  # Giới hạn tối đa 64x64
+        
+        # Làm tròn lên bội số của 8 (chuẩn cho image processing)
+        watermark_size = ((watermark_size + 7) // 8) * 8
+        
+        # Giới hạn tối đa 64x64
+        watermark_size = min(watermark_size, 64)
         
         # Chuẩn bị watermark
         watermark_prepared = self._prepare_watermark(watermark, watermark_size)
