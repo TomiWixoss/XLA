@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X, RotateCcw, Copy } from 'lucide-react';
 import { useEmbedForm } from '@/hooks';
 import { useExtractForm } from '@/hooks/use-extract-form';
-import { AnimatedCounter, RippleButton } from '@/components/ui/micro-interactions';
+import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
 
 interface Props {
   isActive: boolean;
@@ -223,7 +223,8 @@ export function SteganographyScreen({ isActive }: Props) {
               className="space-y-5 h-full flex flex-col"
             >
               {/* Upload Card */}
-              <div className="panel-card group hover:border-[var(--steganography)] transition-all">
+              <SkewOnHover maxSkew={2}>
+                <div className="panel-card group hover:border-[var(--steganography)] transition-all">
                 <div className="panel-header">
                   <h3 className="panel-title flex items-center gap-2">
                     <div className="w-8 h-8 bg-[var(--steganography)]/10 flex items-center justify-center">
@@ -287,6 +288,7 @@ export function SteganographyScreen({ isActive }: Props) {
                   </AnimatePresence>
                 </label>
               </div>
+              </SkewOnHover>
 
               {/* Message Input - Animate in when image selected */}
               <AnimatePresence>
@@ -477,7 +479,8 @@ export function SteganographyScreen({ isActive }: Props) {
               className="space-y-5 h-full flex flex-col"
             >
               {/* Upload Stego Image */}
-              <div className="panel-card group hover:border-[var(--steganography)] transition-all">
+              <SkewOnHover maxSkew={2}>
+                <div className="panel-card group hover:border-[var(--steganography)] transition-all">
                 <div className="panel-header">
                   <h3 className="panel-title flex items-center gap-2">
                     <div className="w-8 h-8 bg-[var(--steganography)]/10 flex items-center justify-center">
@@ -535,7 +538,8 @@ export function SteganographyScreen({ isActive }: Props) {
                     )}
                   </AnimatePresence>
                 </label>
-              </div>
+                </div>
+              </SkewOnHover>
 
               {/* Password if encrypted */}
               <AnimatePresence>

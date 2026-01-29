@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Film, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, AlertTriangle, Play, RotateCcw } from 'lucide-react';
 import { useVideoEmbedForm } from '@/hooks/use-video-embed-form';
 import { useVideoExtractForm } from '@/hooks/use-video-extract-form';
-import { AnimatedCounter, RippleButton } from '@/components/ui/micro-interactions';
+import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
 
 interface Props {
   isActive: boolean;
@@ -233,101 +233,105 @@ export function VideoScreen({ isActive }: Props) {
               {/* Dual Upload Grid */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Video Upload */}
-                <div className="panel-card group hover:border-[var(--video)] transition-colors">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm flex items-center gap-2">
-                      <Film className="w-4 h-4 text-[var(--video)]" />
-                      Video
-                    </h3>
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card group hover:border-[var(--video)] transition-colors">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm flex items-center gap-2">
+                        <Film className="w-4 h-4 text-[var(--video)]" />
+                        Video
+                      </h3>
+                      {embedVideoFile && (
+                        <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      )}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedVideoFile ? 'has-file p-2' : ''}`}>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/avi"
+                        onChange={(e) => handleEmbedVideoChange(e)}
+                        className="hidden"
+                      />
+                      {embedVideoPreview ? (
+                        <div className="relative w-full">
+                          <video 
+                            src={embedVideoPreview} 
+                            className="max-h-32 mx-auto object-contain"
+                            muted
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-10 h-10 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
+                              <Play className="w-5 h-5" />
+                            </div>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); embedFormState.reset(); }}
+                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                          <p className="text-xs text-[var(--muted-foreground)]">MP4, AVI</p>
+                          <p className="text-xs text-[var(--muted-foreground)]">Max 100MB</p>
+                        </div>
+                      )}
+                    </label>
                     {embedVideoFile && (
-                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate text-center">
+                        {embedVideoFile.name}
+                      </p>
                     )}
                   </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedVideoFile ? 'has-file p-2' : ''}`}>
-                    <input
-                      type="file"
-                      accept="video/mp4,video/avi"
-                      onChange={(e) => handleEmbedVideoChange(e)}
-                      className="hidden"
-                    />
-                    {embedVideoPreview ? (
-                      <div className="relative w-full">
-                        <video 
-                          src={embedVideoPreview} 
-                          className="max-h-32 mx-auto object-contain"
-                          muted
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-10 h-10 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
-                            <Play className="w-5 h-5" />
-                          </div>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={(e) => { e.preventDefault(); embedFormState.reset(); }}
-                          className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
-                        <p className="text-xs text-[var(--muted-foreground)]">MP4, AVI</p>
-                        <p className="text-xs text-[var(--muted-foreground)]">Max 100MB</p>
-                      </div>
-                    )}
-                  </label>
-                  {embedVideoFile && (
-                    <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate text-center">
-                      {embedVideoFile.name}
-                    </p>
-                  )}
-                </div>
+                </SkewOnHover>
 
                 {/* Watermark Upload */}
-                <div className="panel-card group hover:border-[var(--video)] transition-colors">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-[var(--video)]" />
-                      Logo
-                    </h3>
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card group hover:border-[var(--video)] transition-colors">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-[var(--video)]" />
+                        Logo
+                      </h3>
+                      {embedWatermarkImage && (
+                        <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      )}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedWatermarkImage ? 'has-file p-2' : ''}`}>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpg,image/jpeg"
+                        onChange={(e) => handleEmbedWatermarkChange(e)}
+                        className="hidden"
+                      />
+                      {embedWatermarkPreview ? (
+                        <div className="relative w-full">
+                          <img src={embedWatermarkPreview} alt="Watermark" className="max-h-32 mx-auto object-contain" />
+                          <button 
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); }}
+                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <ImageIcon className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                          <p className="text-xs text-[var(--muted-foreground)]">PNG, JPG</p>
+                          <p className="text-xs text-[var(--muted-foreground)]">Max 5MB</p>
+                        </div>
+                      )}
+                    </label>
                     {embedWatermarkImage && (
-                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate text-center">
+                        {embedWatermarkImage.name}
+                      </p>
                     )}
                   </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedWatermarkImage ? 'has-file p-2' : ''}`}>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpg,image/jpeg"
-                      onChange={(e) => handleEmbedWatermarkChange(e)}
-                      className="hidden"
-                    />
-                    {embedWatermarkPreview ? (
-                      <div className="relative w-full">
-                        <img src={embedWatermarkPreview} alt="Watermark" className="max-h-32 mx-auto object-contain" />
-                        <button 
-                          type="button"
-                          onClick={(e) => { e.preventDefault(); }}
-                          className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <ImageIcon className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
-                        <p className="text-xs text-[var(--muted-foreground)]">PNG, JPG</p>
-                        <p className="text-xs text-[var(--muted-foreground)]">Max 5MB</p>
-                      </div>
-                    )}
-                  </label>
-                  {embedWatermarkImage && (
-                    <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate text-center">
-                      {embedWatermarkImage.name}
-                    </p>
-                  )}
-                </div>
+                </SkewOnHover>
               </div>
 
               {/* Configuration */}
@@ -495,84 +499,88 @@ export function VideoScreen({ isActive }: Props) {
               {/* Dual Video Upload Grid */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Watermarked Video */}
-                <div className="panel-card group hover:border-[var(--video)] transition-colors">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm flex items-center gap-2">
-                      <Film className="w-4 h-4 text-[var(--video)]" />
-                      Video đã WM
-                    </h3>
-                    {extractWatermarkedVideo && (
-                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
-                    )}
-                  </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[150px] flex items-center justify-center ${extractWatermarkedVideo ? 'has-file p-2' : ''}`}>
-                    <input
-                      type="file"
-                      accept="video/mp4,video/avi"
-                      onChange={(e) => handleExtractWatermarkedChange(e)}
-                      className="hidden"
-                    />
-                    {extractWatermarkedPreview ? (
-                      <div className="relative w-full">
-                        <video 
-                          src={extractWatermarkedPreview} 
-                          className="max-h-24 mx-auto object-contain"
-                          muted
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-8 h-8 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
-                            <Play className="w-4 h-4" />
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card group hover:border-[var(--video)] transition-colors">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm flex items-center gap-2">
+                        <Film className="w-4 h-4 text-[var(--video)]" />
+                        Video đã WM
+                      </h3>
+                      {extractWatermarkedVideo && (
+                        <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      )}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[150px] flex items-center justify-center ${extractWatermarkedVideo ? 'has-file p-2' : ''}`}>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/avi"
+                        onChange={(e) => handleExtractWatermarkedChange(e)}
+                        className="hidden"
+                      />
+                      {extractWatermarkedPreview ? (
+                        <div className="relative w-full">
+                          <video 
+                            src={extractWatermarkedPreview} 
+                            className="max-h-24 mx-auto object-contain"
+                            muted
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-8 h-8 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
+                              <Play className="w-4 h-4" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
-                        <p className="text-xs text-[var(--muted-foreground)]">Video có watermark</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                      ) : (
+                        <div className="text-center">
+                          <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                          <p className="text-xs text-[var(--muted-foreground)]">Video có watermark</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </SkewOnHover>
 
                 {/* Original Video */}
-                <div className="panel-card group hover:border-[var(--video)] transition-colors">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm flex items-center gap-2">
-                      <Film className="w-4 h-4 text-[var(--video)]" />
-                      Video gốc
-                    </h3>
-                    {extractOriginalVideo && (
-                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
-                    )}
-                  </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[150px] flex items-center justify-center ${extractOriginalVideo ? 'has-file p-2' : ''}`}>
-                    <input
-                      type="file"
-                      accept="video/mp4,video/avi"
-                      onChange={(e) => handleExtractOriginalChange(e)}
-                      className="hidden"
-                    />
-                    {extractOriginalPreview ? (
-                      <div className="relative w-full">
-                        <video 
-                          src={extractOriginalPreview} 
-                          className="max-h-24 mx-auto object-contain"
-                          muted
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-8 h-8 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
-                            <Play className="w-4 h-4" />
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card group hover:border-[var(--video)] transition-colors">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm flex items-center gap-2">
+                        <Film className="w-4 h-4 text-[var(--video)]" />
+                        Video gốc
+                      </h3>
+                      {extractOriginalVideo && (
+                        <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      )}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[150px] flex items-center justify-center ${extractOriginalVideo ? 'has-file p-2' : ''}`}>
+                      <input
+                        type="file"
+                        accept="video/mp4,video/avi"
+                        onChange={(e) => handleExtractOriginalChange(e)}
+                        className="hidden"
+                      />
+                      {extractOriginalPreview ? (
+                        <div className="relative w-full">
+                          <video 
+                            src={extractOriginalPreview} 
+                            className="max-h-24 mx-auto object-contain"
+                            muted
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-8 h-8 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
+                              <Play className="w-4 h-4" />
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
-                        <p className="text-xs text-[var(--muted-foreground)]">Video gốc (chưa WM)</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                      ) : (
+                        <div className="text-center">
+                          <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                          <p className="text-xs text-[var(--muted-foreground)]">Video gốc (chưa WM)</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </SkewOnHover>
               </div>
 
               {/* Configuration */}

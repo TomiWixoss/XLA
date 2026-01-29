@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, RotateCcw } from 'lucide-react';
 import { useWatermarkEmbedForm } from '@/hooks/use-watermark-embed-form';
 import { useWatermarkExtractForm } from '@/hooks/use-watermark-extract-form';
-import { AnimatedCounter, RippleButton } from '@/components/ui/micro-interactions';
+import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
 
 interface Props {
   isActive: boolean;
@@ -222,80 +222,84 @@ export function WatermarkingScreen({ isActive }: Props) {
               {/* Dual Upload Grid */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Host Image */}
-                <div className="panel-card group hover:border-[var(--watermarking)] transition-colors">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm flex items-center gap-2">
-                      <ImageIcon className="w-4 h-4 text-[var(--watermarking)]" />
-                      Ảnh gốc
-                    </h3>
-                    {embedHostImage && (
-                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
-                    )}
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card group hover:border-[var(--watermarking)] transition-colors">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-[var(--watermarking)]" />
+                        Ảnh gốc
+                      </h3>
+                      {embedHostImage && (
+                        <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      )}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedHostImage ? 'has-file p-2' : ''}`}>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpg,image/jpeg,image/bmp"
+                        onChange={(e) => handleEmbedHostChange(e)}
+                        className="hidden"
+                      />
+                      {embedHostPreview ? (
+                        <div className="relative w-full">
+                          <img src={embedHostPreview} alt="Host" className="max-h-32 mx-auto object-contain" />
+                          <button 
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); embedFormState.reset(); }}
+                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
+                          <p className="text-xs text-[var(--muted-foreground)]">Host Image</p>
+                        </div>
+                      )}
+                    </label>
                   </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedHostImage ? 'has-file p-2' : ''}`}>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpg,image/jpeg,image/bmp"
-                      onChange={(e) => handleEmbedHostChange(e)}
-                      className="hidden"
-                    />
-                    {embedHostPreview ? (
-                      <div className="relative w-full">
-                        <img src={embedHostPreview} alt="Host" className="max-h-32 mx-auto object-contain" />
-                        <button 
-                          type="button"
-                          onClick={(e) => { e.preventDefault(); embedFormState.reset(); }}
-                          className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                        <p className="text-xs text-[var(--muted-foreground)]">Host Image</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                </SkewOnHover>
 
                 {/* Watermark Image */}
-                <div className="panel-card group hover:border-[var(--watermarking)] transition-colors">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-[var(--watermarking)]" />
-                      Logo
-                    </h3>
-                    {embedWatermarkImage && (
-                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
-                    )}
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card group hover:border-[var(--watermarking)] transition-colors">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm flex items-center gap-2">
+                        <Shield className="w-4 h-4 text-[var(--watermarking)]" />
+                        Logo
+                      </h3>
+                      {embedWatermarkImage && (
+                        <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                      )}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedWatermarkImage ? 'has-file p-2' : ''}`}>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpg,image/jpeg,image/bmp"
+                        onChange={(e) => handleEmbedWatermarkChange(e)}
+                        className="hidden"
+                      />
+                      {embedWatermarkPreview ? (
+                        <div className="relative w-full">
+                          <img src={embedWatermarkPreview} alt="Watermark" className="max-h-32 mx-auto object-contain" />
+                          <button 
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); }}
+                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-center">
+                          <Shield className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
+                          <p className="text-xs text-[var(--muted-foreground)]">Watermark</p>
+                        </div>
+                      )}
+                    </label>
                   </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedWatermarkImage ? 'has-file p-2' : ''}`}>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpg,image/jpeg,image/bmp"
-                      onChange={(e) => handleEmbedWatermarkChange(e)}
-                      className="hidden"
-                    />
-                    {embedWatermarkPreview ? (
-                      <div className="relative w-full">
-                        <img src={embedWatermarkPreview} alt="Watermark" className="max-h-32 mx-auto object-contain" />
-                        <button 
-                          type="button"
-                          onClick={(e) => { e.preventDefault(); }}
-                          className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <Shield className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                        <p className="text-xs text-[var(--muted-foreground)]">Watermark</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                </SkewOnHover>
               </div>
 
               {/* Configuration */}
@@ -356,7 +360,7 @@ export function WatermarkingScreen({ isActive }: Props) {
                       </div>
                     </div>
 
-                    <button
+                    <RippleButton
                       type="submit"
                       disabled={isEmbedPending}
                       className="btn btn-primary btn-block mt-6 group"
@@ -372,7 +376,7 @@ export function WatermarkingScreen({ isActive }: Props) {
                           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </div>
                       )}
-                    </button>
+                    </RippleButton>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -461,42 +465,46 @@ export function WatermarkingScreen({ isActive }: Props) {
               {/* Dual Upload Grid */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Watermarked Image */}
-                <div className="panel-card">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm">Ảnh đã WM</h3>
-                    {extractWatermarkedImage && <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm">Ảnh đã WM</h3>
+                      {extractWatermarkedImage && <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${extractWatermarkedImage ? 'has-file p-2' : ''}`}>
+                      <input type="file" accept="image/*" onChange={(e) => handleExtractWatermarkedChange(e)} className="hidden" />
+                      {extractWatermarkedPreview ? (
+                        <img src={extractWatermarkedPreview} alt="WM" className="max-h-32 mx-auto object-contain" />
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
+                          <p className="text-xs">Ảnh có watermark</p>
+                        </div>
+                      )}
+                    </label>
                   </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${extractWatermarkedImage ? 'has-file p-2' : ''}`}>
-                    <input type="file" accept="image/*" onChange={(e) => handleExtractWatermarkedChange(e)} className="hidden" />
-                    {extractWatermarkedPreview ? (
-                      <img src={extractWatermarkedPreview} alt="WM" className="max-h-32 mx-auto object-contain" />
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                        <p className="text-xs">Ảnh có watermark</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                </SkewOnHover>
 
                 {/* Original Image */}
-                <div className="panel-card">
-                  <div className="panel-header">
-                    <h3 className="panel-title text-sm">Ảnh gốc</h3>
-                    {extractOriginalImage && <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                <SkewOnHover maxSkew={2}>
+                  <div className="panel-card">
+                    <div className="panel-header">
+                      <h3 className="panel-title text-sm">Ảnh gốc</h3>
+                      {extractOriginalImage && <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center">✓</span>}
+                    </div>
+                    <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${extractOriginalImage ? 'has-file p-2' : ''}`}>
+                      <input type="file" accept="image/*" onChange={(e) => handleExtractOriginalChange(e)} className="hidden" />
+                      {extractOriginalPreview ? (
+                        <img src={extractOriginalPreview} alt="Original" className="max-h-32 mx-auto object-contain" />
+                      ) : (
+                        <div className="text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
+                          <p className="text-xs">Ảnh gốc ban đầu</p>
+                        </div>
+                      )}
+                    </label>
                   </div>
-                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${extractOriginalImage ? 'has-file p-2' : ''}`}>
-                    <input type="file" accept="image/*" onChange={(e) => handleExtractOriginalChange(e)} className="hidden" />
-                    {extractOriginalPreview ? (
-                      <img src={extractOriginalPreview} alt="Original" className="max-h-32 mx-auto object-contain" />
-                    ) : (
-                      <div className="text-center">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)]" />
-                        <p className="text-xs">Ảnh gốc ban đầu</p>
-                      </div>
-                    )}
-                  </label>
-                </div>
+                </SkewOnHover>
               </div>
 
               {/* Extract Button */}

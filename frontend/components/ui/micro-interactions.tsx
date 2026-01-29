@@ -633,3 +633,321 @@ export function FlipCard({ front, back, className = '' }: FlipCardProps) {
     </div>
   );
 }
+
+// ============================================
+// TILT CARD - 3D perspective tilt on hover
+// ============================================
+interface TiltCardProps {
+  children: ReactNode;
+  className?: string;
+  maxTilt?: number;
+  scale?: number;
+  perspective?: number;
+}
+
+export function TiltCard({ 
+  children, 
+  className = '',
+  maxTilt = 10,
+  scale = 1.02,
+  perspective = 1000
+}: TiltCardProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const scaleVal = useMotionValue(1);
+  
+  const springConfig = { damping: 20, stiffness: 300 };
+  const rotateXSpring = useSpring(rotateX, springConfig);
+  const rotateYSpring = useSpring(rotateY, springConfig);
+  const scaleSpring = useSpring(scaleVal, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const x = (e.clientX - centerX) / (rect.width / 2);
+    const y = (e.clientY - centerY) / (rect.height / 2);
+    
+    rotateX.set(-y * maxTilt);
+    rotateY.set(x * maxTilt);
+    scaleVal.set(scale);
+  };
+
+  const handleMouseLeave = () => {
+    rotateX.set(0);
+    rotateY.set(0);
+    scaleVal.set(1);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      style={{
+        perspective,
+        rotateX: rotateXSpring,
+        rotateY: rotateYSpring,
+        scale: scaleSpring,
+        transformStyle: 'preserve-3d',
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ============================================
+// ELASTIC ELEMENT - Rubber band drag effect
+// ============================================
+interface ElasticElementProps {
+  children: ReactNode;
+  className?: string;
+  dragConstraints?: { top?: number; right?: number; bottom?: number; left?: number };
+  elasticity?: number;
+}
+
+export function ElasticElement({
+  children,
+  className = '',
+  dragConstraints = { top: -50, right: 50, bottom: 50, left: -50 },
+  elasticity = 0.5
+}: ElasticElementProps) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const springConfig = { damping: 10, stiffness: 100, mass: elasticity };
+  const xSpring = useSpring(x, springConfig);
+  const ySpring = useSpring(y, springConfig);
+
+  return (
+    <motion.div
+      className={`cursor-grab active:cursor-grabbing ${className}`}
+      style={{ x: xSpring, y: ySpring }}
+      drag
+      dragConstraints={dragConstraints}
+      dragElastic={0.2}
+      onDragEnd={() => {
+        x.set(0);
+        y.set(0);
+      }}
+      whileDrag={{ scale: 1.05 }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ============================================
+// MAGNETIC CONTAINER - Content follows cursor
+// ============================================
+interface MagneticContainerProps {
+  children: ReactNode;
+  className?: string;
+  strength?: number;
+}
+
+export function MagneticContainer({
+  children,
+  className = '',
+  strength = 0.15
+}: MagneticContainerProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  
+  const springConfig = { damping: 25, stiffness: 200 };
+  const xSpring = useSpring(x, springConfig);
+  const ySpring = useSpring(y, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set((e.clientX - centerX) * strength);
+    y.set((e.clientY - centerY) * strength);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      style={{ x: xSpring, y: ySpring }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ============================================
+// SKEW ON HOVER - Subtle skew distortion
+// ============================================
+interface SkewOnHoverProps {
+  children: ReactNode;
+  className?: string;
+  maxSkew?: number;
+}
+
+export function SkewOnHover({
+  children,
+  className = '',
+  maxSkew = 3
+}: SkewOnHoverProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const skewX = useMotionValue(0);
+  const skewY = useMotionValue(0);
+  
+  const springConfig = { damping: 20, stiffness: 300 };
+  const skewXSpring = useSpring(skewX, springConfig);
+  const skewYSpring = useSpring(skewY, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const x = (e.clientX - centerX) / (rect.width / 2);
+    const y = (e.clientY - centerY) / (rect.height / 2);
+    
+    skewX.set(y * maxSkew);
+    skewY.set(-x * maxSkew);
+  };
+
+  const handleMouseLeave = () => {
+    skewX.set(0);
+    skewY.set(0);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      className={className}
+      style={{
+        skewX: skewXSpring,
+        skewY: skewYSpring,
+      }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ============================================
+// WOBBLE BUTTON - Jelly/wobble effect on click
+// ============================================
+interface WobbleButtonProps {
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: 'button' | 'submit';
+}
+
+export function WobbleButton({
+  children,
+  className = '',
+  onClick,
+  disabled,
+  type = 'button'
+}: WobbleButtonProps) {
+  const [isWobbling, setIsWobbling] = useState(false);
+
+  const handleClick = () => {
+    if (disabled) return;
+    setIsWobbling(true);
+    setTimeout(() => setIsWobbling(false), 500);
+    onClick?.();
+  };
+
+  return (
+    <motion.button
+      type={type}
+      className={className}
+      disabled={disabled}
+      onClick={handleClick}
+      animate={isWobbling ? {
+        scale: [1, 1.1, 0.9, 1.05, 0.95, 1],
+        rotate: [0, -2, 2, -1, 1, 0],
+      } : {}}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      {children}
+    </motion.button>
+  );
+}
+
+// ============================================
+// MORPH CONTAINER - Smooth shape morphing
+// ============================================
+interface MorphContainerProps {
+  children: ReactNode;
+  className?: string;
+}
+
+export function MorphContainer({ children, className = '' }: MorphContainerProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      className={className}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      animate={{
+        borderRadius: isHovered ? '20% 30% 25% 35%' : '0%',
+      }}
+      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ============================================
+// SQUEEZE EFFECT - Compress on hover
+// ============================================
+interface SqueezeProps {
+  children: ReactNode;
+  className?: string;
+  direction?: 'horizontal' | 'vertical';
+  amount?: number;
+}
+
+export function Squeeze({
+  children,
+  className = '',
+  direction = 'horizontal',
+  amount = 0.95
+}: SqueezeProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const scaleX = direction === 'horizontal' ? (isHovered ? amount : 1) : (isHovered ? 2 - amount : 1);
+  const scaleY = direction === 'vertical' ? (isHovered ? amount : 1) : (isHovered ? 2 - amount : 1);
+
+  return (
+    <motion.div
+      className={className}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      animate={{ scaleX, scaleY }}
+      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
