@@ -20,7 +20,8 @@ export function useWatermarkExtractForm() {
   const form = useForm<ExtractWatermarkInput>({
     resolver: zodResolver(extractWatermarkSchema),
     defaultValues: {
-      watermarkSize: 32,
+      watermarkSize: 64,
+      arnoldIterations: 10,
     },
   });
 
@@ -62,7 +63,7 @@ export function useWatermarkExtractForm() {
       originalImage,
       originalWatermark: originalWatermark || undefined,
       watermarkSize: formData.watermarkSize,
-      arnoldIterations: 10, // Default value
+      arnoldIterations: formData.arnoldIterations,
     });
   };
 

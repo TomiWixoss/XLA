@@ -540,22 +540,40 @@ export function WatermarkingScreen({ isActive }: Props) {
                     animate={{ opacity: 1, height: 'auto' }}
                     className="panel-card"
                   >
-                    <div className="field-group mb-0">
-                      <div className="field-label">
-                        <span>Kích thước watermark</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Kích thước WM</span>
+                          <span className="text-xs opacity-75">(xem khi nhúng)</span>
+                        </div>
+                        <input
+                          type="number"
+                          {...extractFormState.register('watermarkSize', { valueAsNumber: true })}
+                          placeholder="64"
+                          className="field-input"
+                        />
                       </div>
-                      <input
-                        type="number"
-                        {...extractFormState.register('watermarkSize', { valueAsNumber: true })}
-                        placeholder="32"
-                        className="field-input"
-                      />
+
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Arnold Iterations</span>
+                          <span className="text-xs opacity-75">(phải giống lúc nhúng)</span>
+                        </div>
+                        <input
+                          type="number"
+                          min="1"
+                          max="20"
+                          {...extractFormState.register('arnoldIterations', { valueAsNumber: true })}
+                          placeholder="10"
+                          className="field-input"
+                        />
+                      </div>
                     </div>
 
-                    <button
+                    <RippleButton
                       type="submit"
                       disabled={isExtractPending}
-                      className="btn btn-primary btn-block mt-4"
+                      className="btn btn-primary btn-block mt-4 group"
                     >
                       {isExtractPending ? (
                         <div className="flex items-center gap-3">
@@ -566,9 +584,10 @@ export function WatermarkingScreen({ isActive }: Props) {
                         <div className="flex items-center gap-3">
                           <Search className="w-5 h-5" />
                           <span>Trích Xuất Watermark</span>
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </div>
                       )}
-                    </button>
+                    </RippleButton>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -597,12 +616,14 @@ export function WatermarkingScreen({ isActive }: Props) {
                       </div>
                     )}
 
-                    <div className="metrics-grid mt-4">
-                      <div className="metric-box">
-                        <div className="metric-value text-[var(--success)]">{extractData.nc?.toFixed(3) || 'N/A'}</div>
-                        <div className="metric-label">NC</div>
+                    {extractData.nc !== undefined && (
+                      <div className="metrics-grid mt-4">
+                        <div className="metric-box">
+                          <div className="metric-value text-[var(--success)]">{extractData.nc.toFixed(3)}</div>
+                          <div className="metric-label">NC</div>
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-3 mt-4">
                       <RippleButton
