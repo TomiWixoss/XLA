@@ -6,6 +6,7 @@
 import { Navbar, HeroSection } from '@/components/layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmbedForm, ExtractForm } from '@/components/features/steganography';
+import { WatermarkEmbedForm, WatermarkExtractForm } from '@/components/features/watermarking';
 import { motion } from 'framer-motion';
 
 export default function HomePage() {
@@ -62,9 +63,20 @@ export default function HomePage() {
                 Bảo vệ ảnh của bạn với thủy vân vô hình sử dụng thuật toán DCT-SVD
               </p>
               
-              <div className="text-center text-gray-500">
-                Sắp ra mắt...
-              </div>
+              <Tabs defaultValue="embed" className="w-full">
+                <TabsList className="grid w-full grid-cols-2 mb-8">
+                  <TabsTrigger value="embed">Nhúng Watermark</TabsTrigger>
+                  <TabsTrigger value="extract">Trích Xuất Watermark</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="embed">
+                  <WatermarkEmbedForm />
+                </TabsContent>
+                
+                <TabsContent value="extract">
+                  <WatermarkExtractForm />
+                </TabsContent>
+              </Tabs>
             </motion.div>
           </div>
         </section>
