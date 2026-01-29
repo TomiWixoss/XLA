@@ -540,41 +540,7 @@ export function VideoScreen({ isActive }: Props) {
                       </div>
                     </div>
 
-                    {/* Scene Detection Stats - NEW */}
-                    {embedData.scene_detection_enabled && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-4 border-2 border-[var(--primary)]/20 bg-[var(--primary)]/5 mt-4"
-                      >
-                        <div className="flex items-center gap-2 mb-3">
-                          <Sparkles className="w-4 h-4 text-[var(--primary)]" />
-                          <h4 className="text-sm font-bold">Scene Detection Stats</h4>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-[var(--primary)] counter">
-                              <AnimatedCounter value={embedData.scene_changes_detected || 0} duration={1} />
-                            </div>
-                            <div className="text-xs text-[var(--muted-foreground)] mt-1">Scenes phát hiện</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-[var(--success)] counter">
-                              <AnimatedCounter value={embedData.scene_changes_watermarked || 0} duration={1} />
-                            </div>
-                            <div className="text-xs text-[var(--muted-foreground)] mt-1">Scenes đã WM</div>
-                          </div>
-                        </div>
-                        {embedData.efficiency_improvement && (
-                          <p className="text-xs text-center text-[var(--muted-foreground)] mt-3 font-medium flex items-center justify-center gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            {embedData.efficiency_improvement}
-                          </p>
-                        )}
-                      </motion.div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 mt-4">
                       <RippleButton
                         type="button"
                         onClick={() => {
