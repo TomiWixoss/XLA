@@ -15,7 +15,8 @@ async def embed_video_watermark(
     video: UploadFile = File(...),
     watermark: UploadFile = File(...),
     alpha: float = Form(0.1),
-    frame_skip: int = Form(5)
+    frame_skip: int = Form(5),
+    arnold_iterations: int = Form(10)
 ):
     """Embed watermark into video"""
     try:
@@ -29,7 +30,7 @@ async def embed_video_watermark(
         with open(wm_path, "wb") as f:
             f.write(await watermark.read())
         
-        video_wm = VideoWatermark(alpha=alpha, frame_skip=frame_skip)
+        video_wm = VideoWatermark(alpha=alpha, arnold_iterations=arnold_iterations, frame_skip=frame_skip)
         result = video_wm.embed(video_path, wm_path, output_path)
         
         # Đọc video và encode base64

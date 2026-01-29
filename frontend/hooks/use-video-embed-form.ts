@@ -20,6 +20,7 @@ export function useVideoEmbedForm() {
     defaultValues: {
       alpha: 0.1,
       frameSkip: 5,
+      arnoldIterations: 10,
     },
   });
 
@@ -50,6 +51,7 @@ export function useVideoEmbedForm() {
       watermark: watermarkImage,
       alpha: formData.alpha,
       frameSkip: formData.frameSkip,
+      arnoldIterations: formData.arnoldIterations,
     });
   };
 

@@ -8,6 +8,7 @@ export interface EmbedVideoWatermarkParams {
   watermark: File;
   alpha: number;
   frameSkip: number;
+  arnoldIterations: number;
 }
 
 export interface EmbedVideoWatermarkResponse {
@@ -41,6 +42,7 @@ export const videoApi = {
     formData.append('watermark', params.watermark);
     formData.append('alpha', String(params.alpha));
     formData.append('frame_skip', String(params.frameSkip));
+    formData.append('arnold_iterations', String(params.arnoldIterations));
 
     const response = await apiClient.post('/api/video/embed', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

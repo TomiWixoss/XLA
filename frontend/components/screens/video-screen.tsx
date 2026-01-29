@@ -67,6 +67,7 @@ export function VideoScreen({ isActive }: Props) {
 
   const alpha = embedFormState.watch('alpha');
   const frameSkip = embedFormState.watch('frameSkip');
+  const arnoldIterations = embedFormState.watch('arnoldIterations');
 
   // Calculate step
   const getStep = () => {
@@ -338,7 +339,7 @@ export function VideoScreen({ isActive }: Props) {
                       </h3>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-3 gap-6">
                       {/* Alpha */}
                       <div className="field-group mb-0">
                         <div className="field-label">
@@ -376,6 +377,26 @@ export function VideoScreen({ isActive }: Props) {
                         <div className="range-labels">
                           <span>Tất cả</span>
                           <span>Nhanh</span>
+                        </div>
+                      </div>
+
+                      {/* Arnold Iterations */}
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Arnold</span>
+                          <span className="text-mono font-bold text-[var(--video)]">{arnoldIterations || 10}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="20"
+                          step="1"
+                          {...embedFormState.register('arnoldIterations', { valueAsNumber: true })}
+                          className="field-range w-full"
+                        />
+                        <div className="range-labels">
+                          <span>1</span>
+                          <span>20</span>
                         </div>
                       </div>
                     </div>
@@ -640,7 +661,7 @@ export function VideoScreen({ isActive }: Props) {
                         <input
                           type="number"
                           min="1"
-                          max="50"
+                          max="20"
                           {...extractFormState.register('arnoldIterations', { valueAsNumber: true })}
                           className="field-input"
                         />
