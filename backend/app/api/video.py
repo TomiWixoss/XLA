@@ -127,9 +127,17 @@ async def embed_video_watermark(
             yield f"data: {json.dumps({'stage': 'encoding', 'progress': 100, 'message': 'Đã mã hóa xong'})}\n\n"
             await asyncio.sleep(0.1)
             
-            # Bước 5: Hoàn thành
+            # Bước 5: Hoàn thành - Sử dụng ensure_ascii=False
             result['watermarked_video'] = f"data:video/mp4;base64,{video_base64}"
-            yield f"data: {json.dumps({'stage': 'complete', 'progress': 100, 'message': 'Hoàn thành!', 'result': result})}\n\n"
+            
+            result_json = json.dumps({
+                'stage': 'complete', 
+                'progress': 100, 
+                'message': 'Hoàn thành!', 
+                'result': result
+            }, ensure_ascii=False)
+            
+            yield f"data: {result_json}\n\n"
             
         except Exception as e:
             yield f"data: {json.dumps({'stage': 'error', 'message': str(e)})}\n\n"
@@ -214,8 +222,15 @@ async def extract_video_watermark(
                 'watermark_size': watermark_size
             }
             
-            # Hoàn thành
-            yield f"data: {json.dumps({'stage': 'complete', 'progress': 100, 'message': 'Hoàn thành!', 'result': result})}\n\n"
+            # Hoàn thành - Sử dụng ensure_ascii=False
+            result_json = json.dumps({
+                'stage': 'complete', 
+                'progress': 100, 
+                'message': 'Hoàn thành!', 
+                'result': result
+            }, ensure_ascii=False)
+            
+            yield f"data: {result_json}\n\n"
             
         except Exception as e:
             yield f"data: {json.dumps({'stage': 'error', 'message': str(e)})}\n\n"

@@ -87,35 +87,48 @@ export function useVideoEmbedSSE() {
         throw new Error('No reader available');
       }
 
+      let buffer = ''; // Buffer để lưu chunk chưa hoàn chỉnh
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        
+        const lines = buffer.split('\n');
+        
+        // Giữ lại dòng cuối nếu chưa hoàn chỉnh
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const eventData = JSON.parse(line.slice(6));
+            try {
+              const jsonStr = line.slice(6);
+              const eventData = JSON.parse(jsonStr);
 
-            if (eventData.stage === 'error') {
-              setError(new Error(eventData.message));
-              setIsPending(false);
-              return;
+              if (eventData.stage === 'error') {
+                setError(new Error(eventData.message));
+                setIsPending(false);
+                return;
+              }
+
+              if (eventData.stage === 'complete') {
+                setProgressState({ stage: 'complete', progress: 100, message: eventData.message });
+                setData(eventData.result);
+                setIsPending(false);
+                return;
+              }
+
+              setProgressState({
+                stage: eventData.stage,
+                progress: eventData.progress,
+                message: eventData.message,
+              });
+            } catch (parseError) {
+              console.error('JSON parse error:', parseError);
+              // Tiếp tục xử lý các dòng khác
             }
-
-            if (eventData.stage === 'complete') {
-              setProgressState({ stage: 'complete', progress: 100, message: eventData.message });
-              setData(eventData.result);
-              setIsPending(false);
-              return;
-            }
-
-            setProgressState({
-              stage: eventData.stage,
-              progress: eventData.progress,
-              message: eventData.message,
-            });
           }
         }
       }
