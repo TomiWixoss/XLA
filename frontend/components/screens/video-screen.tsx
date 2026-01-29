@@ -363,25 +363,27 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                       </div>
 
-                      {/* Frame Skip */}
-                      <div className="field-group mb-0">
-                        <div className="field-label">
-                          <span>Frame</span>
-                          <span className="text-mono font-bold text-[var(--video)]">Mỗi {frameSkip || 5}</span>
+                      {/* Frame Skip - Ẩn khi bật Scene Detection */}
+                      {!embedFormState.watch('useSceneDetection') && (
+                        <div className="field-group mb-0">
+                          <div className="field-label">
+                            <span>Frame</span>
+                            <span className="text-mono font-bold text-[var(--video)]">Mỗi {frameSkip || 5}</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            step="1"
+                            {...embedFormState.register('frameSkip', { valueAsNumber: true })}
+                            className="field-range w-full"
+                          />
+                          <div className="range-labels">
+                            <span>Tất cả</span>
+                            <span>Nhanh</span>
+                          </div>
                         </div>
-                        <input
-                          type="range"
-                          min="1"
-                          max="10"
-                          step="1"
-                          {...embedFormState.register('frameSkip', { valueAsNumber: true })}
-                          className="field-range w-full"
-                        />
-                        <div className="range-labels">
-                          <span>Tất cả</span>
-                          <span>Nhanh</span>
-                        </div>
-                      </div>
+                      )}
 
                       {/* Arnold Iterations */}
                       <div className="field-group mb-0">
