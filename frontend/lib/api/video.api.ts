@@ -50,6 +50,8 @@ export const videoApi = {
     formData.append('alpha', String(params.alpha));
     formData.append('frame_skip', String(params.frameSkip));
     formData.append('arnold_iterations', String(params.arnoldIterations));
+    formData.append('use_scene_detection', String(params.useSceneDetection ?? true));
+    formData.append('scene_threshold', String(params.sceneThreshold ?? 30.0));
 
     const response = await apiClient.post('/api/video/embed', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

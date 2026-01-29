@@ -24,8 +24,13 @@ export interface EmbedWatermarkResponse {
   blocks_used: number;
   alpha: number;
   arnold_iterations: number;
-  psnr: number;
-  ssim: number;
+  quality_metrics: {
+    psnr: number;
+    ssim: number;
+    mse: number;
+  };
+  algorithm: string;
+  wavelet?: string;
   watermarked_image: string;
 }
 
