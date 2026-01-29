@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Film, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, AlertTriangle, Play } from 'lucide-react';
+import { Film, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, AlertTriangle, Play, RotateCcw } from 'lucide-react';
 import { useVideoEmbedForm } from '@/hooks/use-video-embed-form';
 
 interface Props {
@@ -31,14 +31,15 @@ export function VideoScreen({ isActive }: Props) {
     onSubmit: onEmbedSubmit,
     isPending: isEmbedPending,
     data: embedData,
+    resetAll: resetEmbedForm,
   } = embedForm;
 
   // Reset forms when switching mode
   const handleModeChange = useCallback((newMode: Mode) => {
     if (newMode === mode) return;
     setMode(newMode);
-    embedFormState.reset();
-  }, [mode, embedFormState]);
+    resetEmbedForm();
+  }, [mode, resetEmbedForm]);
 
   const isPending = isEmbedPending;
   const result = embedData;
@@ -426,21 +427,31 @@ export function VideoScreen({ isActive }: Props) {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (embedData.watermarked_video) {
-                          const link = document.createElement('a');
-                          link.href = embedData.watermarked_video;
-                          link.download = 'watermarked_video.mp4';
-                          link.click();
-                        }
-                      }}
-                      className="btn btn-primary btn-block"
-                    >
-                      <Download className="w-5 h-5" />
-                      Tải video
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (embedData.watermarked_video) {
+                            const link = document.createElement('a');
+                            link.href = embedData.watermarked_video;
+                            link.download = 'watermarked_video.mp4';
+                            link.click();
+                          }
+                        }}
+                        className="btn btn-primary"
+                      >
+                        <Download className="w-5 h-5" />
+                        Tải video
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => resetEmbedForm()}
+                        className="btn btn-outline group"
+                      >
+                        <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
+                        Làm lại
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

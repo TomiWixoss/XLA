@@ -1,7 +1,7 @@
 /**
  * Custom Hook for Embed Form Logic
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { embedMessageSchema, type EmbedMessageInput } from '@/lib/validations/steganography.schema';
@@ -11,7 +11,7 @@ export function useEmbedForm() {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>('');
   
-  const { mutate: embedMessage, isPending, data } = useEmbedMessage();
+  const { mutate: embedMessage, isPending, data, reset: resetMutation } = useEmbedMessage();
   
   const form = useForm<EmbedMessageInput>({
     resolver: zodResolver(embedMessageSchema),
@@ -43,6 +43,14 @@ export function useEmbedForm() {
     });
   };
 
+  // Complete reset - clears form, image, and mutation data
+  const resetAll = useCallback(() => {
+    form.reset();
+    setCoverImage(null);
+    setCoverPreview('');
+    resetMutation();
+  }, [form, resetMutation]);
+
   return {
     form,
     coverImage,
@@ -51,5 +59,7 @@ export function useEmbedForm() {
     onSubmit,
     isPending,
     data,
+    resetAll,
   };
 }
+

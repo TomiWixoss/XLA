@@ -1,7 +1,7 @@
 /**
  * Custom Hook for Video Embed Form Logic
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { embedVideoWatermarkSchema, type EmbedVideoWatermarkInput } from '@/lib/validations/video.schema';
@@ -13,7 +13,7 @@ export function useVideoEmbedForm() {
   const [watermarkImage, setWatermarkImage] = useState<File | null>(null);
   const [watermarkPreview, setWatermarkPreview] = useState<string>('');
   
-  const { mutate: embedWatermark, isPending, data } = useEmbedVideoWatermark();
+  const { mutate: embedWatermark, isPending, data, reset: resetMutation } = useEmbedVideoWatermark();
   
   const form = useForm<EmbedVideoWatermarkInput>({
     resolver: zodResolver(embedVideoWatermarkSchema),
@@ -53,6 +53,19 @@ export function useVideoEmbedForm() {
     });
   };
 
+  // Complete reset - clears form, files, and mutation data
+  const resetAll = useCallback(() => {
+    form.reset();
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview);
+    }
+    setVideoFile(null);
+    setVideoPreview('');
+    setWatermarkImage(null);
+    setWatermarkPreview('');
+    resetMutation();
+  }, [form, videoPreview, resetMutation]);
+
   return {
     form,
     videoFile,
@@ -64,5 +77,7 @@ export function useVideoEmbedForm() {
     onSubmit,
     isPending,
     data,
+    resetAll,
   };
 }
+

@@ -1,7 +1,7 @@
 /**
  * Custom Hook for Extract Form Logic
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { extractMessageSchema, type ExtractMessageInput } from '@/lib/validations/steganography.schema';
@@ -11,7 +11,7 @@ export function useExtractForm() {
   const [stegoImage, setStegoImage] = useState<File | null>(null);
   const [stegoPreview, setStegoPreview] = useState<string>('');
   
-  const { mutate: extractMessage, isPending, data } = useExtractMessage();
+  const { mutate: extractMessage, isPending, data, reset: resetMutation } = useExtractMessage();
   
   const form = useForm<ExtractMessageInput>({
     resolver: zodResolver(extractMessageSchema),
@@ -41,6 +41,14 @@ export function useExtractForm() {
     });
   };
 
+  // Complete reset - clears form, image, and mutation data
+  const resetAll = useCallback(() => {
+    form.reset();
+    setStegoImage(null);
+    setStegoPreview('');
+    resetMutation();
+  }, [form, resetMutation]);
+
   return {
     form,
     stegoImage,
@@ -49,5 +57,7 @@ export function useExtractForm() {
     onSubmit,
     isPending,
     data,
+    resetAll,
   };
 }
+

@@ -1,7 +1,7 @@
 /**
  * Custom Hook for Watermark Extract Form Logic
  */
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { extractWatermarkSchema, type ExtractWatermarkInput } from '@/lib/validations/watermarking.schema';
@@ -13,7 +13,7 @@ export function useWatermarkExtractForm() {
   const [originalImage, setOriginalImage] = useState<File | null>(null);
   const [originalPreview, setOriginalPreview] = useState<string>('');
   
-  const { mutate: extractWatermark, isPending, data } = useExtractWatermark();
+  const { mutate: extractWatermark, isPending, data, reset: resetMutation } = useExtractWatermark();
   
   const form = useForm<ExtractWatermarkInput>({
     resolver: zodResolver(extractWatermarkSchema),
@@ -54,6 +54,16 @@ export function useWatermarkExtractForm() {
     });
   };
 
+  // Complete reset - clears form, images, and mutation data
+  const resetAll = useCallback(() => {
+    form.reset();
+    setWatermarkedImage(null);
+    setWatermarkedPreview('');
+    setOriginalImage(null);
+    setOriginalPreview('');
+    resetMutation();
+  }, [form, resetMutation]);
+
   return {
     form,
     watermarkedImage,
@@ -65,5 +75,7 @@ export function useWatermarkExtractForm() {
     onSubmit,
     isPending,
     data,
+    resetAll,
   };
 }
+

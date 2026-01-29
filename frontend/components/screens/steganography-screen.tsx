@@ -4,9 +4,9 @@
  */
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X } from 'lucide-react';
+import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X, RotateCcw, Copy } from 'lucide-react';
 import { useEmbedForm } from '@/hooks';
 import { useExtractForm } from '@/hooks/use-extract-form';
 
@@ -30,6 +30,7 @@ export function SteganographyScreen({ isActive }: Props) {
     onSubmit: onEmbedSubmit,
     isPending: isEmbedPending,
     data: embedData,
+    resetAll: resetEmbedForm,
   } = embedForm;
 
   // Extract form
@@ -42,15 +43,16 @@ export function SteganographyScreen({ isActive }: Props) {
     onSubmit: onExtractSubmit,
     isPending: isExtractPending,
     data: extractData,
+    resetAll: resetExtractForm,
   } = extractForm;
 
   // Reset forms when switching mode
   const handleModeChange = useCallback((newMode: Mode) => {
     if (newMode === mode) return;
     setMode(newMode);
-    embedFormState.reset();
-    extractFormState.reset();
-  }, [mode, embedFormState, extractFormState]);
+    resetEmbedForm();
+    resetExtractForm();
+  }, [mode, resetEmbedForm, resetExtractForm]);
 
   // Current form state based on mode
   const currentImage = mode === 'embed' ? embedCoverImage : extractStegoImage;
@@ -427,21 +429,31 @@ export function SteganographyScreen({ isActive }: Props) {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (embedData.stego_image) {
-                          const link = document.createElement('a');
-                          link.href = embedData.stego_image;
-                          link.download = 'stego_image.png';
-                          link.click();
-                        }
-                      }}
-                      className="btn btn-primary btn-block group"
-                    >
-                      <Download className="w-5 h-5" />
-                      <span>Tải ảnh Stego</span>
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (embedData.stego_image) {
+                            const link = document.createElement('a');
+                            link.href = embedData.stego_image;
+                            link.download = 'stego_image.png';
+                            link.click();
+                          }
+                        }}
+                        className="btn btn-primary group"
+                      >
+                        <Download className="w-5 h-5" />
+                        <span>Tải ảnh</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => resetEmbedForm()}
+                        className="btn btn-outline group"
+                      >
+                        <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
+                        <span>Làm lại</span>
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -596,15 +608,26 @@ export function SteganographyScreen({ isActive }: Props) {
                       {extractData.message || 'Không tìm thấy tin nhắn'}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(extractData.message || '');
-                      }}
-                      className="btn btn-outline btn-block mt-4"
-                    >
-                      Copy tin nhắn
-                    </button>
+                    <div className="grid grid-cols-2 gap-3 mt-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(extractData.message || '');
+                        }}
+                        className="btn btn-outline group"
+                      >
+                        <Copy className="w-5 h-5" />
+                        <span>Copy</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => resetExtractForm()}
+                        className="btn btn-primary group"
+                      >
+                        <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
+                        <span>Làm lại</span>
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

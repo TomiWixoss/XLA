@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search } from 'lucide-react';
+import { Shield, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, RotateCcw } from 'lucide-react';
 import { useWatermarkEmbedForm } from '@/hooks/use-watermark-embed-form';
 import { useWatermarkExtractForm } from '@/hooks/use-watermark-extract-form';
 
@@ -32,6 +32,7 @@ export function WatermarkingScreen({ isActive }: Props) {
     onSubmit: onEmbedSubmit,
     isPending: isEmbedPending,
     data: embedData,
+    resetAll: resetEmbedForm,
   } = embedForm;
 
   // Extract form
@@ -47,15 +48,16 @@ export function WatermarkingScreen({ isActive }: Props) {
     onSubmit: onExtractSubmit,
     isPending: isExtractPending,
     data: extractData,
+    resetAll: resetExtractForm,
   } = extractForm;
 
   // Reset forms when switching mode
   const handleModeChange = useCallback((newMode: Mode) => {
     if (newMode === mode) return;
     setMode(newMode);
-    embedFormState.reset();
-    extractFormState.reset();
-  }, [mode, embedFormState, extractFormState]);
+    resetEmbedForm();
+    resetExtractForm();
+  }, [mode, resetEmbedForm, resetExtractForm]);
 
   const isPending = mode === 'embed' ? isEmbedPending : isExtractPending;
   const result = mode === 'embed' ? embedData : extractData;
@@ -411,21 +413,31 @@ export function WatermarkingScreen({ isActive }: Props) {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (embedData.watermarked_image) {
-                          const link = document.createElement('a');
-                          link.href = embedData.watermarked_image;
-                          link.download = 'watermarked.png';
-                          link.click();
-                        }
-                      }}
-                      className="btn btn-primary btn-block"
-                    >
-                      <Download className="w-5 h-5" />
-                      Tải ảnh
-                    </button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (embedData.watermarked_image) {
+                            const link = document.createElement('a');
+                            link.href = embedData.watermarked_image;
+                            link.download = 'watermarked.png';
+                            link.click();
+                          }
+                        }}
+                        className="btn btn-primary"
+                      >
+                        <Download className="w-5 h-5" />
+                        Tải ảnh
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => resetEmbedForm()}
+                        className="btn btn-outline group"
+                      >
+                        <RotateCcw className="w-5 h-5 group-hover:rotate-[-180deg] transition-transform duration-500" />
+                        Làm lại
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
