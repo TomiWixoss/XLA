@@ -21,3 +21,7 @@ fastapi-cors>=0.0.6
 
 # File handling
 aiofiles>=24.1.0
+
+# Utilities
+tqdm>=4.65.0
+matplotlib>=3.7.0

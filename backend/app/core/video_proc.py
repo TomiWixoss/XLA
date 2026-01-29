@@ -5,7 +5,7 @@ Video Watermarking - Nhúng thủy vân vào video
 import cv2
 import os
 import tempfile
-from core.watermarking import DCT_SVD_Watermark
+from app.core.watermarking import DCT_SVD_Watermark
 from tqdm import tqdm
 
 

@@ -5,7 +5,7 @@ DCT-SVD Digital Image Watermarking với Arnold Cat Map
 import numpy as np
 import cv2
 from scipy.fftpack import dct, idct
-from core.utils import arnold_cat_map, inverse_arnold_cat_map
+from app.core.utils import arnold_cat_map, inverse_arnold_cat_map
 
 
 class DCT_SVD_Watermark:
