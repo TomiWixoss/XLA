@@ -74,12 +74,20 @@ async def embed_watermark(
             await asyncio.sleep(0.1)
             
             with open(output_path, "rb") as f:
-                watermarked_base64 = base64.b64encode(f.read()).decode('utf-8')
+                watermarked_bytes = f.read()
+                watermarked_base64 = base64.b64encode(watermarked_bytes).decode('utf-8')
             
             result['watermarked_image'] = f"data:image/png;base64,{watermarked_base64}"
             
-            # Hoàn thành
-            yield f"data: {json.dumps({'stage': 'complete', 'progress': 100, 'message': 'Hoàn thành!', 'result': result})}\n\n"
+            # Hoàn thành - Sử dụng ensure_ascii=False
+            result_json = json.dumps({
+                'stage': 'complete', 
+                'progress': 100, 
+                'message': 'Hoàn thành!', 
+                'result': result
+            }, ensure_ascii=False)
+            
+            yield f"data: {result_json}\n\n"
             
         except Exception as e:
             yield f"data: {json.dumps({'stage': 'error', 'message': str(e)})}\n\n"
@@ -152,7 +160,8 @@ async def extract_watermark(
             await asyncio.sleep(0.1)
             
             with open(extracted_path, "rb") as f:
-                extracted_base64 = base64.b64encode(f.read()).decode('utf-8')
+                extracted_bytes = f.read()
+                extracted_base64 = base64.b64encode(extracted_bytes).decode('utf-8')
             
             result = {
                 "extracted_watermark": f"data:image/png;base64,{extracted_base64}",
@@ -171,8 +180,15 @@ async def extract_watermark(
                 nc = calculate_nc(orig_wm_resized, extracted)
                 result['nc'] = float(nc)
             
-            # Hoàn thành
-            yield f"data: {json.dumps({'stage': 'complete', 'progress': 100, 'message': 'Hoàn thành!', 'result': result})}\n\n"
+            # Hoàn thành - Sử dụng ensure_ascii=False
+            result_json = json.dumps({
+                'stage': 'complete', 
+                'progress': 100, 
+                'message': 'Hoàn thành!', 
+                'result': result
+            }, ensure_ascii=False)
+            
+            yield f"data: {result_json}\n\n"
             
         except Exception as e:
             yield f"data: {json.dumps({'stage': 'error', 'message': str(e)})}\n\n"

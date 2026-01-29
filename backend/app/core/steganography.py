@@ -248,10 +248,9 @@ class LSB_Stego:
                             # Thay LSB bằng bit của message
                             stego_value = (original_value & 0xFE) | int(binary_message[data_index])
                             
-                            # Apply OPAP (Optimal Pixel Adjustment Process)
-                            adjusted_value = self._optimal_pixel_adjustment(original_value, stego_value, k=1)
-                            
-                            stego_image[i, j, k] = adjusted_value
+                            # KHÔNG dùng OPAP cho LSB đơn giản (k=1) vì có thể làm sai LSB
+                            # OPAP chỉ hữu ích khi nhúng nhiều bits (k > 1)
+                            stego_image[i, j, k] = stego_value
                             data_index += 1
                         else:
                             break
