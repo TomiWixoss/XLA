@@ -11,7 +11,7 @@ export function useExtractForm() {
   const [stegoImage, setStegoImage] = useState<File | null>(null);
   const [stegoPreview, setStegoPreview] = useState<string>('');
   
-  const { mutate: extractMessage, isPending, data, reset: resetMutation } = useExtractMessage();
+  const { mutate: extractMessage, isPending, data, reset: resetMutation, error } = useExtractMessage();
   
   const form = useForm<ExtractMessageInput>({
     resolver: zodResolver(extractMessageSchema),
@@ -59,6 +59,7 @@ export function useExtractForm() {
     onSubmit,
     isPending,
     data,
+    error,
     resetAll,
   };
 }

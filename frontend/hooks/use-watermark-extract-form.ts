@@ -15,7 +15,7 @@ export function useWatermarkExtractForm() {
   const [originalWatermark, setOriginalWatermark] = useState<File | null>(null);
   const [originalWatermarkPreview, setOriginalWatermarkPreview] = useState<string>('');
   
-  const { mutate: extractWatermark, isPending, data, reset: resetMutation } = useExtractWatermark();
+  const { mutate: extractWatermark, isPending, data, reset: resetMutation, error } = useExtractWatermark();
   
   const form = useForm<ExtractWatermarkInput>({
     resolver: zodResolver(extractWatermarkSchema),
@@ -93,6 +93,7 @@ export function useWatermarkExtractForm() {
     onSubmit,
     isPending,
     data,
+    error,
     resetAll,
   };
 }

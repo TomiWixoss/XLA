@@ -6,10 +6,10 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Film, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, AlertTriangle, Play, RotateCcw } from 'lucide-react';
+import { Film, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, Search, AlertTriangle, Play, RotateCcw } from 'lucide-react';
 import { useVideoEmbedForm } from '@/hooks/use-video-embed-form';
 import { useVideoExtractForm } from '@/hooks/use-video-extract-form';
-import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
+import { AnimatedCounter, RippleButton, SkewOnHover } from '@/components/ui/micro-interactions';
 
 interface Props {
   isActive: boolean;
@@ -33,6 +33,7 @@ export function VideoScreen({ isActive }: Props) {
     onSubmit: onEmbedSubmit,
     isPending: isEmbedPending,
     data: embedData,
+    error: embedError,
     resetAll: resetEmbedForm,
   } = embedForm;
 
@@ -49,6 +50,7 @@ export function VideoScreen({ isActive }: Props) {
     onSubmit: onExtractSubmit,
     isPending: isExtractPending,
     data: extractData,
+    error: extractError,
     resetAll: resetExtractForm,
   } = extractForm;
 
@@ -263,13 +265,6 @@ export function VideoScreen({ isActive }: Props) {
                               <Play className="w-5 h-5" />
                             </div>
                           </div>
-                          <button 
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); embedFormState.reset(); }}
-                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
                         </div>
                       ) : (
                         <div className="text-center">
@@ -309,13 +304,6 @@ export function VideoScreen({ isActive }: Props) {
                       {embedWatermarkPreview ? (
                         <div className="relative w-full">
                           <img src={embedWatermarkPreview} alt="Watermark" className="max-h-32 mx-auto object-contain" />
-                          <button 
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); }}
-                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
                         </div>
                       ) : (
                         <div className="text-center">
@@ -409,6 +397,23 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                       )}
                     </RippleButton>
+
+                    {/* Error Display */}
+                    {embedError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-start gap-3 p-4 border-2 border-[var(--destructive)] bg-[var(--destructive)]/5 mt-4"
+                      >
+                        <AlertTriangle className="w-5 h-5 text-[var(--destructive)] flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-bold text-sm text-[var(--destructive)]">Lỗi</p>
+                          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                            {embedError instanceof Error ? embedError.message : 'Đã xảy ra lỗi khi nhúng watermark'}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -659,6 +664,23 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                       )}
                     </RippleButton>
+
+                    {/* Error Display */}
+                    {extractError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex items-start gap-3 p-4 border-2 border-[var(--destructive)] bg-[var(--destructive)]/5 mt-4"
+                      >
+                        <AlertTriangle className="w-5 h-5 text-[var(--destructive)] flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="font-bold text-sm text-[var(--destructive)]">Lỗi</p>
+                          <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                            {extractError instanceof Error ? extractError.message : 'Đã xảy ra lỗi khi trích xuất watermark'}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

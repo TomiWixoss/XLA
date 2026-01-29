@@ -13,7 +13,7 @@ export function useVideoExtractForm() {
   const [originalVideo, setOriginalVideo] = useState<File | null>(null);
   const [originalPreview, setOriginalPreview] = useState<string>('');
   
-  const { mutate: extractWatermark, isPending, data, reset: resetMutation } = useExtractVideoWatermark();
+  const { mutate: extractWatermark, isPending, data, reset: resetMutation, error } = useExtractVideoWatermark();
   
   const form = useForm<ExtractVideoWatermarkInput>({
     resolver: zodResolver(extractVideoWatermarkSchema),
@@ -76,6 +76,7 @@ export function useVideoExtractForm() {
     onSubmit,
     isPending,
     data,
+    error,
     resetAll,
   };
 }

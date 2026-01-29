@@ -13,7 +13,7 @@ export function useWatermarkEmbedForm() {
   const [watermarkImage, setWatermarkImage] = useState<File | null>(null);
   const [watermarkPreview, setWatermarkPreview] = useState<string>('');
   
-  const { mutate: embedWatermark, isPending, data, reset: resetMutation } = useEmbedWatermark();
+  const { mutate: embedWatermark, isPending, data, reset: resetMutation, error } = useEmbedWatermark();
   
   const form = useForm<EmbedWatermarkInput>({
     resolver: zodResolver(embedWatermarkSchema),
@@ -75,6 +75,7 @@ export function useWatermarkEmbedForm() {
     onSubmit,
     isPending,
     data,
+    error,
     resetAll,
   };
 }

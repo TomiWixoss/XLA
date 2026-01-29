@@ -29,6 +29,11 @@ async def embed_message(
         with open(cover_path, "wb") as f:
             f.write(await cover_image.read())
         
+        # Validate image
+        cover_img = cv2.imread(cover_path)
+        if cover_img is None:
+            raise HTTPException(status_code=400, detail="Không thể đọc ảnh. Vui lòng kiểm tra định dạng file (PNG, BMP, JPG).")
+        
         # Embed
         stego = LSB_Stego(use_encryption=use_encryption, password=password)
         result = stego.embed(cover_path, message, stego_path)
@@ -70,6 +75,11 @@ async def extract_message(
         
         with open(stego_path, "wb") as f:
             f.write(await stego_image.read())
+        
+        # Validate image
+        stego_img = cv2.imread(stego_path)
+        if stego_img is None:
+            raise HTTPException(status_code=400, detail="Không thể đọc ảnh stego. Vui lòng kiểm tra định dạng file (PNG, BMP).")
         
         stego = LSB_Stego(use_encryption=use_decryption, password=password)
         message = stego.extract(stego_path)

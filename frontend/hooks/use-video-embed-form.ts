@@ -13,7 +13,7 @@ export function useVideoEmbedForm() {
   const [watermarkImage, setWatermarkImage] = useState<File | null>(null);
   const [watermarkPreview, setWatermarkPreview] = useState<string>('');
   
-  const { mutate: embedWatermark, isPending, data, reset: resetMutation } = useEmbedVideoWatermark();
+  const { mutate: embedWatermark, isPending, data, reset: resetMutation, error } = useEmbedVideoWatermark();
   
   const form = useForm<EmbedVideoWatermarkInput>({
     resolver: zodResolver(embedVideoWatermarkSchema),
@@ -77,6 +77,7 @@ export function useVideoEmbedForm() {
     onSubmit,
     isPending,
     data,
+    error,
     resetAll,
   };
 }

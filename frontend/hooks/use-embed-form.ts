@@ -11,7 +11,7 @@ export function useEmbedForm() {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string>('');
   
-  const { mutate: embedMessage, isPending, data, reset: resetMutation } = useEmbedMessage();
+  const { mutate: embedMessage, isPending, data, reset: resetMutation, error } = useEmbedMessage();
   
   const form = useForm<EmbedMessageInput>({
     resolver: zodResolver(embedMessageSchema),
@@ -59,6 +59,7 @@ export function useEmbedForm() {
     onSubmit,
     isPending,
     data,
+    error,
     resetAll,
   };
 }

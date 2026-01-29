@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X, RotateCcw, Copy } from 'lucide-react';
+import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X, RotateCcw, Copy, AlertTriangle } from 'lucide-react';
 import { useEmbedForm } from '@/hooks';
 import { useExtractForm } from '@/hooks/use-extract-form';
 import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
@@ -31,6 +31,7 @@ export function SteganographyScreen({ isActive }: Props) {
     onSubmit: onEmbedSubmit,
     isPending: isEmbedPending,
     data: embedData,
+    error: embedError,
     resetAll: resetEmbedForm,
   } = embedForm;
 
@@ -44,6 +45,7 @@ export function SteganographyScreen({ isActive }: Props) {
     onSubmit: onExtractSubmit,
     isPending: isExtractPending,
     data: extractData,
+    error: extractError,
     resetAll: resetExtractForm,
   } = extractForm;
 
@@ -260,16 +262,6 @@ export function SteganographyScreen({ isActive }: Props) {
                         className="relative"
                       >
                         <img src={embedCoverPreview} alt="Preview" className="upload-preview mx-auto" />
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            embedFormState.reset();
-                          }}
-                          className="absolute top-2 right-2 w-8 h-8 bg-[var(--destructive)] text-white flex items-center justify-center hover:scale-110 transition-transform"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
                       </motion.div>
                     ) : (
                       <motion.div
@@ -398,6 +390,26 @@ export function SteganographyScreen({ isActive }: Props) {
                 )}
               </AnimatePresence>
 
+              {/* Error Display */}
+              <AnimatePresence>
+                {embedError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card border-2 border-[var(--destructive)] bg-[var(--destructive)]/5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-[var(--destructive)] flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-sm text-[var(--destructive)]">Lỗi nhúng tin</p>
+                        <p className="text-sm mt-1">{embedError.message}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Result */}
               <AnimatePresence>
                 {embedData && (
@@ -516,16 +528,6 @@ export function SteganographyScreen({ isActive }: Props) {
                         className="relative"
                       >
                         <img src={extractStegoPreview} alt="Stego" className="upload-preview mx-auto" />
-                        <button 
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            extractFormState.reset();
-                          }}
-                          className="absolute top-2 right-2 w-8 h-8 bg-[var(--destructive)] text-white flex items-center justify-center hover:scale-110 transition-transform"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
                       </motion.div>
                     ) : (
                       <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -593,6 +595,26 @@ export function SteganographyScreen({ isActive }: Props) {
                         </div>
                       )}
                     </RippleButton>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Error Display */}
+              <AnimatePresence>
+                {extractError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card border-2 border-[var(--destructive)] bg-[var(--destructive)]/5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-[var(--destructive)] flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-sm text-[var(--destructive)]">Lỗi trích xuất</p>
+                        <p className="text-sm mt-1">{extractError.message}</p>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

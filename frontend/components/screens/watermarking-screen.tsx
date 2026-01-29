@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, RotateCcw } from 'lucide-react';
+import { Shield, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, RotateCcw, AlertTriangle } from 'lucide-react';
 import { useWatermarkEmbedForm } from '@/hooks/use-watermark-embed-form';
 import { useWatermarkExtractForm } from '@/hooks/use-watermark-extract-form';
 import { AnimatedCounter, RippleButton, SkewOnHover, MagneticContainer } from '@/components/ui/micro-interactions';
@@ -33,6 +33,7 @@ export function WatermarkingScreen({ isActive }: Props) {
     onSubmit: onEmbedSubmit,
     isPending: isEmbedPending,
     data: embedData,
+    error: embedError,
     resetAll: resetEmbedForm,
   } = embedForm;
 
@@ -52,6 +53,7 @@ export function WatermarkingScreen({ isActive }: Props) {
     onSubmit: onExtractSubmit,
     isPending: isExtractPending,
     data: extractData,
+    error: extractError,
     resetAll: resetExtractForm,
   } = extractForm;
 
@@ -246,13 +248,6 @@ export function WatermarkingScreen({ isActive }: Props) {
                       {embedHostPreview ? (
                         <div className="relative w-full">
                           <img src={embedHostPreview} alt="Host" className="max-h-32 mx-auto object-contain" />
-                          <button 
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); embedFormState.reset(); }}
-                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
                         </div>
                       ) : (
                         <div className="text-center">
@@ -286,13 +281,6 @@ export function WatermarkingScreen({ isActive }: Props) {
                       {embedWatermarkPreview ? (
                         <div className="relative w-full">
                           <img src={embedWatermarkPreview} alt="Watermark" className="max-h-32 mx-auto object-contain" />
-                          <button 
-                            type="button"
-                            onClick={(e) => { e.preventDefault(); }}
-                            className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
                         </div>
                       ) : (
                         <div className="text-center">
@@ -380,6 +368,26 @@ export function WatermarkingScreen({ isActive }: Props) {
                         </div>
                       )}
                     </RippleButton>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Error Display */}
+              <AnimatePresence>
+                {embedError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card border-2 border-[var(--destructive)] bg-[var(--destructive)]/5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-[var(--destructive)] flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-sm text-[var(--destructive)]">Lỗi nhúng watermark</p>
+                        <p className="text-sm mt-1">{embedError.message}</p>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -588,6 +596,26 @@ export function WatermarkingScreen({ isActive }: Props) {
                         </div>
                       )}
                     </RippleButton>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Error Display */}
+              <AnimatePresence>
+                {extractError && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card border-2 border-[var(--destructive)] bg-[var(--destructive)]/5"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-[var(--destructive)] flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-bold text-sm text-[var(--destructive)]">Lỗi trích xuất</p>
+                        <p className="text-sm mt-1">{extractError.message}</p>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

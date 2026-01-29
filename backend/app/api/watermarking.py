@@ -31,6 +31,15 @@ async def embed_watermark(
         with open(wm_path, "wb") as f:
             f.write(await watermark_image.read())
         
+        # Validate images
+        host_img = cv2.imread(host_path)
+        wm_img = cv2.imread(wm_path)
+        
+        if host_img is None:
+            raise HTTPException(status_code=400, detail="Không thể đọc ảnh gốc. Vui lòng kiểm tra định dạng file.")
+        if wm_img is None:
+            raise HTTPException(status_code=400, detail="Không thể đọc ảnh watermark. Vui lòng kiểm tra định dạng file.")
+        
         watermarker = DCT_SVD_Watermark(alpha=alpha, arnold_iterations=arnold_iterations)
         result = watermarker.embed(host_path, wm_path, output_path)
         
@@ -62,8 +71,6 @@ async def extract_watermark(
 ):
     """Extract watermark from watermarked image"""
     try:
-        print(f"[DEBUG] Extract params: size={watermark_size}, arnold={arnold_iterations}")
-        
         temp_dir = tempfile.mkdtemp()
         wm_path = os.path.join(temp_dir, "watermarked.png")
         orig_path = os.path.join(temp_dir, "original.png")
@@ -73,27 +80,19 @@ async def extract_watermark(
         with open(orig_path, "wb") as f:
             f.write(await original_image.read())
         
-        print(f"[DEBUG] Images saved to {temp_dir}")
-        
         # Validate images
         wm_img = cv2.imread(wm_path)
         orig_img = cv2.imread(orig_path)
         
         if wm_img is None or orig_img is None:
-            raise HTTPException(status_code=400, detail="Cannot read images")
-        
-        print(f"[DEBUG] WM shape: {wm_img.shape}, Orig shape: {orig_img.shape}")
+            raise HTTPException(status_code=400, detail="Không thể đọc ảnh. Vui lòng kiểm tra định dạng file.")
         
         if wm_img.shape != orig_img.shape:
-            error_msg = f"Images must have the same dimensions. Watermarked: {wm_img.shape[:2]}, Original: {orig_img.shape[:2]}"
-            print(f"[ERROR] {error_msg}")
+            error_msg = f"Hai ảnh phải có cùng kích thước. Ảnh đã watermark: {wm_img.shape[1]}x{wm_img.shape[0]}, Ảnh gốc: {orig_img.shape[1]}x{orig_img.shape[0]}"
             raise HTTPException(status_code=400, detail=error_msg)
         
-        print(f"[DEBUG] Starting extraction...")
         watermarker = DCT_SVD_Watermark(arnold_iterations=arnold_iterations)
         extracted = watermarker.extract(wm_path, orig_path, watermark_size)
-        
-        print(f"[DEBUG] Extracted shape: {extracted.shape}")
         
         # Save extracted watermark
         extracted_path = os.path.join(temp_dir, "extracted_watermark.png")
@@ -125,7 +124,4 @@ async def extract_watermark(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"[ERROR] Extract unexpected error: {str(e)}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
