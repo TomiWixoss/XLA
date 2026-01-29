@@ -9,9 +9,13 @@ import base64
 import cv2
 import json
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from app.core.video_proc import VideoWatermark
 
 router = APIRouter()
+
+# Thread pool for blocking operations
+executor = ThreadPoolExecutor(max_workers=2)
 
 @router.post("/embed")
 async def embed_video_watermark(
@@ -46,32 +50,55 @@ async def embed_video_watermark(
             yield f"data: {json.dumps({'stage': 'init', 'progress': 0, 'message': 'Đang khởi tạo...'})}\n\n"
             await asyncio.sleep(0.1)
             
-            video_wm = VideoWatermark(alpha=alpha, arnold_iterations=arnold_iterations, frame_skip=frame_skip)
-            
             # Lấy thông tin video
             cap = cv2.VideoCapture(video_path)
             total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            fps = int(cap.get(cv2.CAP_PROP_FPS))
             cap.release()
             
-            yield f"data: {json.dumps({'stage': 'init', 'progress': 100, 'message': f'Sẵn sàng xử lý {total_frames} frames'})}\n\n"
+            yield f"data: {json.dumps({'stage': 'init', 'progress': 100, 'message': f'Sẵn sàng xử lý {total_frames} frames ({fps} FPS)'})}\n\n"
             await asyncio.sleep(0.1)
             
-            # Bước 3: Xử lý video với progress callback
-            last_progress = 0
+            # Bước 3: Xử lý video với progress streaming
+            yield f"data: {json.dumps({'stage': 'processing', 'progress': 0, 'message': f'Đang xử lý 0/{total_frames} frames (0%)'})}\n\n"
+            
+            # Shared state for progress
+            progress_state = {'current': 0, 'total': total_frames}
+            
             def progress_callback(current, total):
-                nonlocal last_progress
-                progress = int((current / total) * 100)
-                # Chỉ gửi khi progress thay đổi ít nhất 5%
-                if progress - last_progress >= 5 or progress == 100:
-                    last_progress = progress
-                    # Không thể yield trong callback sync, sẽ xử lý sau
+                progress_state['current'] = current
+                progress_state['total'] = total
             
-            yield f"data: {json.dumps({'stage': 'processing', 'progress': 0, 'message': 'Đang nhúng watermark...'})}\n\n"
+            # Run video processing in thread
+            video_wm = VideoWatermark(alpha=alpha, arnold_iterations=arnold_iterations, frame_skip=frame_skip)
+            loop = asyncio.get_event_loop()
             
-            # Xử lý video (blocking operation)
-            result = video_wm.embed(video_path, wm_path, output_path, progress_callback)
+            # Start processing in background
+            process_task = loop.run_in_executor(
+                executor,
+                video_wm.embed,
+                video_path,
+                wm_path,
+                output_path,
+                progress_callback
+            )
             
-            yield f"data: {json.dumps({'stage': 'processing', 'progress': 100, 'message': 'Đã xử lý xong video'})}\n\n"
+            # Stream progress while processing
+            last_progress = 0
+            while not process_task.done():
+                await asyncio.sleep(0.5)  # Check every 0.5s
+                current = progress_state['current']
+                total = progress_state['total']
+                if total > 0:
+                    progress = int((current / total) * 100)
+                    if progress != last_progress:
+                        last_progress = progress
+                        yield f"data: {json.dumps({'stage': 'processing', 'progress': progress, 'message': f'Đang xử lý {current}/{total} frames ({progress}%)'})}\n\n"
+            
+            # Get result
+            result = await process_task
+            
+            yield f"data: {json.dumps({'stage': 'processing', 'progress': 100, 'message': f'Đã xử lý xong {total_frames} frames'})}\n\n"
             await asyncio.sleep(0.1)
             
             # Bước 4: Encode base64
