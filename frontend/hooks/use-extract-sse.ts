@@ -55,7 +55,8 @@ export function useExtractSSE() {
         formDataToSend.append('password', formData.password);
       }
 
-      const response = await fetch('http://localhost:8000/api/steganography/extract', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/steganography/extract`, {
         method: 'POST',
         body: formDataToSend,
       });

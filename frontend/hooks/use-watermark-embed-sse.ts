@@ -65,7 +65,8 @@ export function useWatermarkEmbedSSE() {
       formDataToSend.append('alpha', formData.alpha.toString());
       formDataToSend.append('arnold_iterations', formData.arnoldIterations.toString());
 
-      const response = await fetch('http://localhost:8000/api/watermarking/embed', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/watermarking/embed`, {
         method: 'POST',
         body: formDataToSend,
       });

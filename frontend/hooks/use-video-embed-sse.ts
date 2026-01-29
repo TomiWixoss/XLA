@@ -66,7 +66,8 @@ export function useVideoEmbedSSE() {
       formDataToSend.append('frame_skip', formData.frameSkip.toString());
       formDataToSend.append('arnold_iterations', formData.arnoldIterations.toString());
 
-      const response = await fetch('http://localhost:8000/api/video/embed', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/video/embed`, {
         method: 'POST',
         body: formDataToSend,
       });

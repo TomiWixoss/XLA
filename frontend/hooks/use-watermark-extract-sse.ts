@@ -80,7 +80,8 @@ export function useWatermarkExtractSSE() {
       formDataToSend.append('watermark_size', formData.watermarkSize.toString());
       formDataToSend.append('arnold_iterations', formData.arnoldIterations.toString());
 
-      const response = await fetch('http://localhost:8000/api/watermarking/extract', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/watermarking/extract`, {
         method: 'POST',
         body: formDataToSend,
       });

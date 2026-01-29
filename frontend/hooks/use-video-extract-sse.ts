@@ -65,7 +65,8 @@ export function useVideoExtractSSE() {
       formDataToSend.append('watermark_size', formData.watermarkSize.toString());
       formDataToSend.append('arnold_iterations', formData.arnoldIterations.toString());
 
-      const response = await fetch('http://localhost:8000/api/video/extract', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/video/extract`, {
         method: 'POST',
         body: formDataToSend,
       });

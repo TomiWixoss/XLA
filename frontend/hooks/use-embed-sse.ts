@@ -56,7 +56,8 @@ export function useEmbedSSE() {
         formDataToSend.append('password', formData.password);
       }
 
-      const response = await fetch('http://localhost:8000/api/steganography/embed', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/steganography/embed`, {
         method: 'POST',
         body: formDataToSend,
       });
