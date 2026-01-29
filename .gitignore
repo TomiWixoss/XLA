@@ -1,56 +1,87 @@
-# Python
+# Dependencies
+node_modules/
+frontend/node_modules/
+backend/venv/
+backend/__pycache__/
+*.pyc
+*.pyo
+*.pyd
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
+
+# Next.js
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/dist/
+
+# Production
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
 
-# Virtual Environment
-venv/
-env/
-ENV/
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+frontend/.env.local
+backend/.env
 
-# IDE
-.vscode/
-.idea/
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
 *.swp
 *.swo
 *~
 
-# Output files
-output/
-*.png
-*.jpg
-*.jpeg
-*.mp4
-*.avi
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+coverage/
+.nyc_output/
+*.coverage
+.pytest_cache/
 
 # Temporary files
 temp/
 tmp/
 *.tmp
+output/
 
-# OS
-.DS_Store
-Thumbs.db
+# Python virtual environment
+venv/
+env/
+ENV/
+.venv/
 
-# Streamlit
-.streamlit/
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Logs
-*.log
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# Python
+*.egg-info/
+.eggs/
+*.egg
