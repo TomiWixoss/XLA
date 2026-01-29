@@ -410,6 +410,7 @@
   padding-top: 5rem;
   height: 100%;
   overflow: hidden;
+  position: relative;
 }
 
 @media (max-width: 1024px) {
