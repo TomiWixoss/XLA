@@ -270,7 +270,7 @@
 }
 
 .screen--watermarking {
-  background: var(--secondary);
+  background: var(--background);
 }
 
 .screen--video {
