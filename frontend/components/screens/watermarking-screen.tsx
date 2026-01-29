@@ -136,7 +136,7 @@ export function WatermarkingScreen({ isActive }: Props) {
             transition={{ delay: 0.3 }}
           >
             Bảo vệ bản quyền ảnh với watermark vô hình. Sử dụng 
-            <strong className="text-[var(--foreground)]"> DCT-SVD</strong> kết hợp 
+            <strong className="text-[var(--foreground)]"> DWT-DCT-SVD</strong> kết hợp 
             <strong className="text-[var(--foreground)]"> Arnold Cat Map</strong> để tăng bảo mật.
           </motion.p>
 
@@ -424,17 +424,53 @@ export function WatermarkingScreen({ isActive }: Props) {
                       </div>
                       <div className="metric-box">
                         <div className="metric-value text-[var(--success)] counter">
-                          <AnimatedCounter value={embedData.psnr || 0} duration={1.2} decimals={1} suffix=" dB" />
+                          <AnimatedCounter 
+                            value={embedData.quality_metrics?.psnr || embedData.psnr || 0} 
+                            duration={1.2} 
+                            decimals={1} 
+                            suffix=" dB" 
+                          />
                         </div>
                         <div className="metric-label">PSNR</div>
                       </div>
                       <div className="metric-box">
                         <div className="metric-value counter">
-                          <AnimatedCounter value={embedData.ssim || 1} duration={1.4} decimals={3} />
+                          <AnimatedCounter 
+                            value={embedData.quality_metrics?.ssim || embedData.ssim || 1} 
+                            duration={1.4} 
+                            decimals={3} 
+                          />
                         </div>
                         <div className="metric-label">SSIM</div>
                       </div>
                     </div>
+
+                    {/* Algorithm Info - NEW */}
+                    {embedData.algorithm && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-3 border-2 border-[var(--primary)]/20 bg-[var(--primary)]/5 mt-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+                            <span className="text-xs font-bold">Algorithm:</span>
+                            <span className="text-xs font-mono text-[var(--primary)]">{embedData.algorithm}</span>
+                          </div>
+                          {embedData.wavelet && (
+                            <span className="text-xs text-[var(--muted-foreground)]">
+                              Wavelet: <span className="font-mono">{embedData.wavelet}</span>
+                            </span>
+                          )}
+                        </div>
+                        {embedData.quality_metrics?.mse !== undefined && (
+                          <div className="text-xs text-[var(--muted-foreground)] mt-2">
+                            MSE: <span className="font-mono">{embedData.quality_metrics.mse.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-3">
                       <RippleButton

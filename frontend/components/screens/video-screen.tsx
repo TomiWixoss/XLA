@@ -404,6 +404,59 @@ export function VideoScreen({ isActive }: Props) {
                       </div>
                     </div>
 
+                    {/* Scene Detection - NEW FEATURE */}
+                    <div className="mt-6 p-4 border-2 border-[var(--primary)]/20 bg-[var(--primary)]/5">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+                          <h4 className="text-sm font-bold text-[var(--foreground)]">Scene Detection</h4>
+                          <span className="text-xs px-2 py-0.5 bg-[var(--primary)] text-[var(--primary-foreground)] font-bold">MỚI</span>
+                        </div>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            {...embedFormState.register('useSceneDetection')}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-xs font-medium">Bật</span>
+                        </label>
+                      </div>
+                      
+                      {embedFormState.watch('useSceneDetection') && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                        >
+                          <div className="field-group mb-0">
+                            <div className="field-label">
+                              <span className="text-xs">Ngưỡng phát hiện</span>
+                              <span className="text-mono font-bold text-[var(--primary)] text-xs">
+                                {embedFormState.watch('sceneThreshold') || 30}
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min="10"
+                              max="100"
+                              step="5"
+                              {...embedFormState.register('sceneThreshold', { valueAsNumber: true })}
+                              className="field-range w-full"
+                            />
+                            <div className="range-labels text-xs">
+                              <span>Nhạy (10)</span>
+                              <span>Bình thường (30)</span>
+                              <span>Chậm (100)</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-[var(--muted-foreground)] mt-2">
+                            <Sparkles className="w-3 h-3 inline mr-1" />
+                            Tự động phát hiện thay đổi cảnh và chỉ nhúng vào key frames - Nhanh hơn 24x
+                          </p>
+                        </motion.div>
+                      )}
+                    </div>
+
                     <RippleButton
                       type="submit"
                       disabled={isEmbedPending}
@@ -484,6 +537,40 @@ export function VideoScreen({ isActive }: Props) {
                         <div className="metric-label">Res</div>
                       </div>
                     </div>
+
+                    {/* Scene Detection Stats - NEW */}
+                    {embedData.scene_detection_enabled && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="p-4 border-2 border-[var(--primary)]/20 bg-[var(--primary)]/5 mt-4"
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <Sparkles className="w-4 h-4 text-[var(--primary)]" />
+                          <h4 className="text-sm font-bold">Scene Detection Stats</h4>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-[var(--primary)] counter">
+                              <AnimatedCounter value={embedData.scene_changes_detected || 0} duration={1} />
+                            </div>
+                            <div className="text-xs text-[var(--muted-foreground)] mt-1">Scenes phát hiện</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-[var(--success)] counter">
+                              <AnimatedCounter value={embedData.scene_changes_watermarked || 0} duration={1} />
+                            </div>
+                            <div className="text-xs text-[var(--muted-foreground)] mt-1">Scenes đã WM</div>
+                          </div>
+                        </div>
+                        {embedData.efficiency_improvement && (
+                          <p className="text-xs text-center text-[var(--muted-foreground)] mt-3 font-medium flex items-center justify-center gap-1">
+                            <Sparkles className="w-3 h-3" />
+                            {embedData.efficiency_improvement}
+                          </p>
+                        )}
+                      </motion.div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-3">
                       <RippleButton

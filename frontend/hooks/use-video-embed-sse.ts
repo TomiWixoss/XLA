@@ -28,6 +28,8 @@ export function useVideoEmbedSSE() {
       alpha: 0.1,
       frameSkip: 5,
       arnoldIterations: 10,
+      useSceneDetection: true,
+      sceneThreshold: 30,
     },
   });
 
@@ -65,6 +67,8 @@ export function useVideoEmbedSSE() {
       formDataToSend.append('alpha', formData.alpha.toString());
       formDataToSend.append('frame_skip', formData.frameSkip.toString());
       formDataToSend.append('arnold_iterations', formData.arnoldIterations.toString());
+      formDataToSend.append('use_scene_detection', formData.useSceneDetection.toString());
+      formDataToSend.append('scene_threshold', formData.sceneThreshold.toString());
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       const response = await fetch(`${apiUrl}/api/video/embed`, {
