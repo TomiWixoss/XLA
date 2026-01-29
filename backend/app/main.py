@@ -16,9 +16,7 @@ app = FastAPI(
 allowed_origins = [
     "http://localhost:3000",
     "http://localhost:3001",
-    "https://*.vercel.app",
-    "https://*.netlify.app",
-    "https://*.render.com",
+    "*",  # Allow all origins for now (change in production)
 ]
 
 # Get frontend URL from environment variable if available
@@ -32,6 +30,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Routes
