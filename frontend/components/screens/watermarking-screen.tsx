@@ -443,34 +443,25 @@ export function WatermarkingScreen({ isActive }: Props) {
                         </div>
                         <div className="metric-label">SSIM</div>
                       </div>
-                    </div>
-
-                    {/* Algorithm Info - NEW */}
-                    {embedData.algorithm && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-3 border-2 border-[var(--primary)]/20 bg-[var(--primary)]/5 mt-4"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-[var(--primary)]" />
-                            <span className="text-xs font-bold">Algorithm:</span>
-                            <span className="text-xs font-mono text-[var(--primary)]">{embedData.algorithm}</span>
+                      {embedData.quality_metrics?.mse !== undefined && (
+                        <div className="metric-box">
+                          <div className="metric-value counter">
+                            <AnimatedCounter 
+                              value={embedData.quality_metrics.mse} 
+                              duration={1.0} 
+                              decimals={2} 
+                            />
                           </div>
-                          {embedData.wavelet && (
-                            <span className="text-xs text-[var(--muted-foreground)]">
-                              Wavelet: <span className="font-mono">{embedData.wavelet}</span>
-                            </span>
-                          )}
+                          <div className="metric-label">MSE</div>
                         </div>
-                        {embedData.quality_metrics?.mse !== undefined && (
-                          <div className="text-xs text-[var(--muted-foreground)] mt-2">
-                            MSE: <span className="font-mono">{embedData.quality_metrics.mse.toFixed(2)}</span>
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
+                      )}
+                      {embedData.wavelet && (
+                        <div className="metric-box">
+                          <div className="metric-value text-xs">{embedData.wavelet}</div>
+                          <div className="metric-label">Wavelet</div>
+                        </div>
+                      )}
+                    </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <RippleButton
