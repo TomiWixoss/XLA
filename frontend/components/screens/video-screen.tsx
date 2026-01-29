@@ -1,46 +1,60 @@
 /**
- * Video Screen - AWWWARDS Style
- * Full viewport, no scroll, step-based interaction
+ * Video Screen - AWWWARDS PREMIUM
+ * Full viewport, no scroll, step-based interaction with epic UX
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Film, Upload, Download, Check, ArrowRight, Settings, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Film, Upload, Download, Check, ArrowRight, Settings, Sparkles, Image as ImageIcon, X, Search, AlertTriangle, Play } from 'lucide-react';
 import { useVideoEmbedForm } from '@/hooks/use-video-embed-form';
 
 interface Props {
   isActive: boolean;
 }
 
+type Mode = 'embed' | 'extract';
+
 export function VideoScreen({ isActive }: Props) {
-  const [mode, setMode] = useState<'embed' | 'extract'>('embed');
-  const [step, setStep] = useState(0);
+  const [mode, setMode] = useState<Mode>('embed');
   
+  // Embed form
+  const embedForm = useVideoEmbedForm();
   const {
-    form,
-    videoFile,
-    videoPreview,
-    watermarkImage,
-    watermarkPreview,
-    handleVideoChange,
-    handleWatermarkChange,
-    onSubmit,
-    isPending,
-    data,
-  } = useVideoEmbedForm();
+    form: embedFormState,
+    videoFile: embedVideoFile,
+    videoPreview: embedVideoPreview,
+    watermarkImage: embedWatermarkImage,
+    watermarkPreview: embedWatermarkPreview,
+    handleVideoChange: handleEmbedVideoChange,
+    handleWatermarkChange: handleEmbedWatermarkChange,
+    onSubmit: onEmbedSubmit,
+    isPending: isEmbedPending,
+    data: embedData,
+  } = embedForm;
 
-  const { register, handleSubmit, watch, formState: { errors } } = form;
-  const alpha = watch('alpha');
-  const frameSkip = watch('frameSkip');
+  // Reset forms when switching mode
+  const handleModeChange = useCallback((newMode: Mode) => {
+    if (newMode === mode) return;
+    setMode(newMode);
+    embedFormState.reset();
+  }, [mode, embedFormState]);
 
-  // Auto-advance steps
-  useEffect(() => {
-    if (data) setStep(3);
-    else if (videoFile && watermarkImage) setStep(2);
-    else if (videoFile) setStep(1);
-    else setStep(0);
-  }, [videoFile, watermarkImage, data]);
+  const isPending = isEmbedPending;
+  const result = embedData;
+
+  const alpha = embedFormState.watch('alpha');
+  const frameSkip = embedFormState.watch('frameSkip');
+
+  // Calculate step
+  const getStep = () => {
+    if (result) return 3;
+    if (embedVideoFile && embedWatermarkImage) return 2;
+    if (embedVideoFile) return 1;
+    return 0;
+  };
+
+  const step = getStep();
 
   const steps = [
     { num: 1, label: 'Video' },
@@ -51,316 +65,435 @@ export function VideoScreen({ isActive }: Props) {
 
   return (
     <div className="screen-content">
-      {/* Left Panel - Info */}
-      <div className="screen-left">
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: isActive ? 1 : 0.5, x: isActive ? 0 : -20 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <div className="feature-number">03 / 03</div>
-          <h1 className="heading-lg feature-title">
-            Video<br />
-            <span className="text-[var(--video)]">Watermarking</span>
-          </h1>
-          <p className="feature-desc">
-            Bảo vệ bản quyền video số bằng cách nhúng watermark vào từng frame. 
-            Hỗ trợ MP4, AVI với tốc độ xử lý được tối ưu.
-          </p>
+      {/* Left Panel - Hero Info */}
+      <motion.div 
+        className="screen-left"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isActive ? 1 : 0.3 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="relative">
+          {/* Feature Tag */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[var(--video)] text-[var(--video)] text-sm font-semibold tracking-wider uppercase mb-6"
+          >
+            <Sparkles className="w-4 h-4" />
+            Feature 03
+          </motion.div>
+
+          {/* Main Title */}
+          <motion.h1 
+            className="heading-xl mb-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <span className="block">Video</span>
+            <span className="block text-[var(--video)]">Watermarking</span>
+          </motion.h1>
+
+          {/* Description */}
+          <motion.p 
+            className="text-lg leading-relaxed text-[var(--muted-foreground)] max-w-md mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            Bảo vệ bản quyền video bằng cách nhúng watermark vào từng frame.
+            Hỗ trợ <strong className="text-[var(--foreground)]">MP4</strong> và 
+            <strong className="text-[var(--foreground)]"> AVI</strong>.
+          </motion.p>
 
           {/* Warning Notice */}
-          <div className="mt-4 p-4 border-2 border-[var(--warning)] bg-[var(--warning)]/5">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium text-sm">Lưu ý</p>
-                <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                  Xử lý video có thể mất vài phút. Khuyến nghị video &lt;30 giây để demo nhanh.
-                </p>
-              </div>
+          <motion.div 
+            className="flex items-start gap-3 p-4 border-2 border-[var(--warning)] bg-[var(--warning)]/5 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <AlertTriangle className="w-5 h-5 text-[var(--warning)] flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-sm">Lưu ý quan trọng</p>
+              <p className="text-xs text-[var(--muted-foreground)] mt-1">
+                Xử lý video có thể mất vài phút. Khuyến nghị video &lt;30 giây để demo nhanh.
+              </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Mode Toggle */}
-          <div className="mode-toggle mt-4">
+          <motion.div 
+            className="inline-flex border-2 border-[var(--border)] overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
             <button 
-              className={`mode-btn ${mode === 'embed' ? 'active' : ''}`}
-              onClick={() => setMode('embed')}
+              className={`relative px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 ${
+                mode === 'embed' 
+                  ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' 
+                  : 'bg-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
+              }`}
+              onClick={() => handleModeChange('embed')}
             >
-              Nhúng
+              <span className="flex items-center gap-2">
+                <Film className="w-4 h-4" />
+                Nhúng
+              </span>
             </button>
             <button 
-              className={`mode-btn ${mode === 'extract' ? 'active' : ''}`}
-              onClick={() => setMode('extract')}
+              className={`relative px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 border-l-2 border-[var(--border)] ${
+                mode === 'extract' 
+                  ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' 
+                  : 'bg-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
+              }`}
+              onClick={() => handleModeChange('extract')}
             >
-              Trích xuất
+              <span className="flex items-center gap-2">
+                <Search className="w-4 h-4" />
+                Trích xuất
+              </span>
             </button>
-          </div>
+          </motion.div>
 
-          {/* Steps Indicator */}
-          <div className="steps-inline">
+          {/* Steps Progress */}
+          <motion.div 
+            className="mt-8 flex items-center gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
             {steps.map((s, i) => (
               <div 
-                key={s.num} 
-                className={`step-item ${i < step ? 'completed' : ''} ${i === step ? 'active' : ''}`}
+                key={s.num}
+                className={`flex items-center gap-3 pr-4 ${i < steps.length - 1 ? 'border-r-2 border-[var(--border)]' : ''}`}
               >
-                <div className="step-number">
-                  {i < step ? <Check className="w-3 h-3" /> : s.num}
+                <div className={`
+                  w-10 h-10 flex items-center justify-center text-sm font-bold transition-all duration-300
+                  ${i < step 
+                    ? 'bg-[var(--success)] text-white' 
+                    : i === step 
+                      ? 'bg-[var(--primary)] text-[var(--primary-foreground)] scale-110' 
+                      : 'border-2 border-[var(--border)] text-[var(--muted-foreground)]'
+                  }
+                `}>
+                  {i < step ? <Check className="w-5 h-5" /> : s.num}
                 </div>
-                <span className="step-label">{s.label}</span>
+                <span className={`text-sm font-medium hidden lg:block ${
+                  i <= step ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
+                }`}>
+                  {s.label}
+                </span>
               </div>
             ))}
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      </motion.div>
 
-      {/* Right Panel - Form */}
-      <div className="screen-right">
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: isActive ? 1 : 0.5, x: isActive ? 0 : 20 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Grid: Video + Watermark */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Video Upload */}
-              <div className="panel-card">
-                <div className="panel-header">
-                  <h3 className="panel-title text-sm flex items-center gap-2">
-                    <Film className="w-4 h-4" />
-                    Video gốc
-                  </h3>
-                  {videoFile && (
-                    <span className="panel-badge bg-[var(--success)] text-white text-xs">✓</span>
-                  )}
-                </div>
-                <label className={`upload-zone block ${videoFile ? 'has-file' : ''}`}>
-                  <input
-                    type="file"
-                    accept="video/mp4,video/avi"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        handleVideoChange(e);
-                      }
-                    }}
-                    className="hidden"
-                  />
-                  {videoPreview ? (
-                    <video 
-                      src={videoPreview} 
-                      className="w-full max-h-32 object-contain"
-                      muted
-                    />
-                  ) : (
-                    <>
-                      <Film className="upload-icon mx-auto w-8 h-8" />
-                      <p className="upload-text text-xs">MP4, AVI (Max 100MB)</p>
-                    </>
-                  )}
-                </label>
-                {videoFile && (
-                  <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate">
-                    {videoFile.name}
-                  </p>
-                )}
-              </div>
-
-              {/* Watermark Upload */}
-              <div className="panel-card">
-                <div className="panel-header">
-                  <h3 className="panel-title text-sm flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4" />
-                    Logo
-                  </h3>
-                  {watermarkImage && (
-                    <span className="panel-badge bg-[var(--success)] text-white text-xs">✓</span>
-                  )}
-                </div>
-                <label className={`upload-zone block ${watermarkImage ? 'has-file' : ''}`}>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpg,image/jpeg"
-                    onChange={(e) => {
-                      if (e.target.files?.[0]) {
-                        handleWatermarkChange(e);
-                      }
-                    }}
-                    className="hidden"
-                  />
-                  {watermarkPreview ? (
-                    <img src={watermarkPreview} alt="Watermark" className="upload-preview mx-auto max-h-32" />
-                  ) : (
-                    <>
-                      <ImageIcon className="upload-icon mx-auto w-8 h-8" />
-                      <p className="upload-text text-xs">PNG, JPG (Max 5MB)</p>
-                    </>
-                  )}
-                </label>
-                {watermarkImage && (
-                  <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate">
-                    {watermarkImage.name}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Configuration - Show when both files selected */}
-            <AnimatePresence>
-              {videoFile && watermarkImage && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="panel-card"
-                >
+      {/* Right Panel - Interactive Form */}
+      <motion.div 
+        className="screen-right"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: isActive ? 1 : 0.3, x: isActive ? 0 : 30 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <AnimatePresence mode="wait">
+          {mode === 'embed' ? (
+            <motion.form 
+              key="embed"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.4 }}
+              onSubmit={embedFormState.handleSubmit(onEmbedSubmit)} 
+              className="space-y-5 h-full flex flex-col"
+            >
+              {/* Dual Upload Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Video Upload */}
+                <div className="panel-card group hover:border-[var(--video)] transition-colors">
                   <div className="panel-header">
-                    <h3 className="panel-title flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      Cấu hình
+                    <h3 className="panel-title text-sm flex items-center gap-2">
+                      <Film className="w-4 h-4 text-[var(--video)]" />
+                      Video
                     </h3>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
-                    {/* Alpha Slider */}
-                    <div className="field-group">
-                      <div className="field-label">
-                        <span>Hệ số nhúng</span>
-                        <span className="text-mono font-semibold text-[var(--video)]">
-                          {alpha?.toFixed(2) || '0.10'}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0.01"
-                        max="0.5"
-                        step="0.01"
-                        {...register('alpha', { valueAsNumber: true })}
-                        className="field-range w-full"
-                      />
-                      <div className="range-labels">
-                        <span>Yếu</span>
-                        <span>Mạnh</span>
-                      </div>
-                    </div>
-
-                    {/* Frame Skip */}
-                    <div className="field-group">
-                      <div className="field-label">
-                        <span>Mỗi N frame</span>
-                        <span className="text-mono font-semibold text-[var(--video)]">
-                          {frameSkip || 5}
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="1"
-                        max="10"
-                        step="1"
-                        {...register('frameSkip', { valueAsNumber: true })}
-                        className="field-range w-full"
-                      />
-                      <div className="range-labels">
-                        <span>Mọi frame</span>
-                        <span>Nhanh hơn</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isPending}
-                    className="btn btn-primary btn-block mt-4"
-                  >
-                    {isPending ? (
-                      <>
-                        <div className="loading-spinner w-4 h-4" />
-                        Đang xử lý video...
-                      </>
-                    ) : (
-                      <>
-                        Nhúng Watermark
-                        <ArrowRight className="w-4 h-4" />
-                      </>
+                    {embedVideoFile && (
+                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
                     )}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Result */}
-            <AnimatePresence>
-              {data && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="result-card"
-                >
-                  <div className="result-header">
-                    <div className="result-icon">
-                      <Check className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="result-title">Xử lý thành công!</div>
-                      <div className="result-subtitle">Video đã được watermark</div>
-                    </div>
                   </div>
+                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedVideoFile ? 'has-file p-2' : ''}`}>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/avi"
+                      onChange={(e) => handleEmbedVideoChange(e)}
+                      className="hidden"
+                    />
+                    {embedVideoPreview ? (
+                      <div className="relative w-full">
+                        <video 
+                          src={embedVideoPreview} 
+                          className="max-h-32 mx-auto object-contain"
+                          muted
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-10 h-10 bg-[var(--primary)] text-[var(--primary-foreground)] flex items-center justify-center">
+                            <Play className="w-5 h-5" />
+                          </div>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); embedFormState.reset(); }}
+                          className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <Film className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                        <p className="text-xs text-[var(--muted-foreground)]">MP4, AVI</p>
+                        <p className="text-xs text-[var(--muted-foreground)]">Max 100MB</p>
+                      </div>
+                    )}
+                  </label>
+                  {embedVideoFile && (
+                    <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate text-center">
+                      {embedVideoFile.name}
+                    </p>
+                  )}
+                </div>
 
-                  <div className="metrics-grid">
-                    <div className="metric-box">
-                      <div className="metric-value">{data.total_frames || 'N/A'}</div>
-                      <div className="metric-label">Tổng frame</div>
-                    </div>
-                    <div className="metric-box">
-                      <div className="metric-value">{data.watermarked_frames || 'N/A'}</div>
-                      <div className="metric-label">Đã nhúng</div>
-                    </div>
-                    <div className="metric-box">
-                      <div className="metric-value">{data.fps || 'N/A'}</div>
-                      <div className="metric-label">FPS</div>
-                    </div>
-                    <div className="metric-box">
-                      <div className="metric-value">{data.resolution || 'N/A'}</div>
-                      <div className="metric-label">Resolution</div>
-                    </div>
+                {/* Watermark Upload */}
+                <div className="panel-card group hover:border-[var(--video)] transition-colors">
+                  <div className="panel-header">
+                    <h3 className="panel-title text-sm flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-[var(--video)]" />
+                      Logo
+                    </h3>
+                    {embedWatermarkImage && (
+                      <span className="w-6 h-6 bg-[var(--success)] text-white text-xs flex items-center justify-center font-bold">✓</span>
+                    )}
                   </div>
+                  <label className={`upload-zone block cursor-pointer min-h-[180px] flex items-center justify-center ${embedWatermarkImage ? 'has-file p-2' : ''}`}>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpg,image/jpeg"
+                      onChange={(e) => handleEmbedWatermarkChange(e)}
+                      className="hidden"
+                    />
+                    {embedWatermarkPreview ? (
+                      <div className="relative w-full">
+                        <img src={embedWatermarkPreview} alt="Watermark" className="max-h-32 mx-auto object-contain" />
+                        <button 
+                          type="button"
+                          onClick={(e) => { e.preventDefault(); }}
+                          className="absolute top-0 right-0 w-6 h-6 bg-[var(--destructive)] text-white flex items-center justify-center"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <ImageIcon className="w-8 h-8 mx-auto mb-2 text-[var(--muted-foreground)] group-hover:text-[var(--video)] transition-colors" />
+                        <p className="text-xs text-[var(--muted-foreground)]">PNG, JPG</p>
+                        <p className="text-xs text-[var(--muted-foreground)]">Max 5MB</p>
+                      </div>
+                    )}
+                  </label>
+                  {embedWatermarkImage && (
+                    <p className="text-xs text-[var(--muted-foreground)] mt-2 truncate text-center">
+                      {embedWatermarkImage.name}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (data.watermarked_video) {
-                        const link = document.createElement('a');
-                        link.href = data.watermarked_video;
-                        link.download = 'watermarked_video.mp4';
-                        link.click();
-                      }
-                    }}
-                    className="btn btn-primary btn-block"
+              {/* Configuration */}
+              <AnimatePresence>
+                {embedVideoFile && embedWatermarkImage && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card"
                   >
-                    <Download className="w-4 h-4" />
-                    Tải video đã watermark
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
-        </motion.div>
-      </div>
+                    <div className="panel-header">
+                      <h3 className="panel-title flex items-center gap-2">
+                        <Settings className="w-4 h-4 text-[var(--video)]" />
+                        Cấu hình
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Alpha */}
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Alpha</span>
+                          <span className="text-mono font-bold text-[var(--video)]">{alpha?.toFixed(2) || '0.10'}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0.01"
+                          max="0.5"
+                          step="0.01"
+                          {...embedFormState.register('alpha', { valueAsNumber: true })}
+                          className="field-range w-full"
+                        />
+                        <div className="range-labels">
+                          <span>Yếu</span>
+                          <span>Mạnh</span>
+                        </div>
+                      </div>
+
+                      {/* Frame Skip */}
+                      <div className="field-group mb-0">
+                        <div className="field-label">
+                          <span>Frame</span>
+                          <span className="text-mono font-bold text-[var(--video)]">Mỗi {frameSkip || 5}</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          step="1"
+                          {...embedFormState.register('frameSkip', { valueAsNumber: true })}
+                          className="field-range w-full"
+                        />
+                        <div className="range-labels">
+                          <span>Tất cả</span>
+                          <span>Nhanh</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isEmbedPending}
+                      className="btn btn-primary btn-block mt-6 group"
+                    >
+                      {isEmbedPending ? (
+                        <div className="flex items-center gap-3">
+                          <div className="loading-spinner w-5 h-5" />
+                          <span>Đang xử lý video...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <span>Nhúng Watermark</span>
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      )}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Result */}
+              <AnimatePresence>
+                {embedData && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="result-card mt-auto"
+                  >
+                    <div className="result-header">
+                      <div className="result-icon">
+                        <Check className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="result-title">Xử lý thành công!</div>
+                        <div className="result-subtitle">Video đã được watermark</div>
+                      </div>
+                    </div>
+
+                    <div className="metrics-grid">
+                      <div className="metric-box">
+                        <div className="metric-value">{embedData.total_frames || 'N/A'}</div>
+                        <div className="metric-label">Frames</div>
+                      </div>
+                      <div className="metric-box">
+                        <div className="metric-value text-[var(--success)]">{embedData.watermarked_frames || 'N/A'}</div>
+                        <div className="metric-label">Đã WM</div>
+                      </div>
+                      <div className="metric-box">
+                        <div className="metric-value">{embedData.fps || 'N/A'}</div>
+                        <div className="metric-label">FPS</div>
+                      </div>
+                      <div className="metric-box">
+                        <div className="metric-value">{embedData.resolution || 'N/A'}</div>
+                        <div className="metric-label">Res</div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (embedData.watermarked_video) {
+                          const link = document.createElement('a');
+                          link.href = embedData.watermarked_video;
+                          link.download = 'watermarked_video.mp4';
+                          link.click();
+                        }
+                      }}
+                      className="btn btn-primary btn-block"
+                    >
+                      <Download className="w-5 h-5" />
+                      Tải video
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.form>
+          ) : (
+            /* EXTRACT MODE - Simplified */
+            <motion.div 
+              key="extract"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.4 }}
+              className="flex items-center justify-center h-full"
+            >
+              <div className="text-center max-w-md">
+                <div className="w-20 h-20 mx-auto mb-6 border-2 border-[var(--border)] flex items-center justify-center">
+                  <Search className="w-10 h-10 text-[var(--muted-foreground)]" />
+                </div>
+                <h3 className="text-xl font-bold mb-3">Trích xuất Video</h3>
+                <p className="text-[var(--muted-foreground)] text-sm">
+                  Tính năng trích xuất watermark từ video đang được phát triển. 
+                  Vui lòng sử dụng tính năng nhúng để bảo vệ video của bạn.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleModeChange('embed')}
+                  className="btn btn-outline mt-6"
+                >
+                  ← Quay lại nhúng
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Loading Overlay */}
-      {isPending && (
-        <div className="loading-overlay">
-          <div className="loading-spinner" />
-          <div className="loading-text">Đang xử lý video... (có thể mất vài phút)</div>
-          <div className="loading-progress">
-            <div className="loading-progress-bar" />
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isPending && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="loading-overlay"
+          >
+            <div className="loading-spinner" />
+            <div className="loading-text">Đang xử lý video... (có thể mất vài phút)</div>
+            <div className="loading-progress">
+              <div className="loading-progress-bar" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

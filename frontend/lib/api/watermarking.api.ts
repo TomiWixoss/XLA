@@ -29,9 +29,12 @@ export interface EmbedWatermarkResponse {
 }
 
 export interface ExtractWatermarkResponse {
-  extracted_watermark: number[][];
+  success: boolean;
+  extracted_watermark: string; // base64 encoded image
   size: number;
+  nc?: number; // Normalized Cross-correlation
 }
+
 
 export const watermarkingApi = {
   embedWatermark: async (params: EmbedWatermarkParams): Promise<EmbedWatermarkResponse> => {

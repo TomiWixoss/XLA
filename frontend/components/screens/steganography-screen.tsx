@@ -1,325 +1,637 @@
 /**
- * Steganography Screen - AWWWARDS Style
- * Full viewport, no scroll, step-based interaction
+ * Steganography Screen - AWWWARDS PREMIUM
+ * Full viewport, no scroll, step-based interaction with epic UX
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight } from 'lucide-react';
+import { Lock, Upload, Eye, EyeOff, Download, Check, ArrowRight, Sparkles, FileText, X } from 'lucide-react';
 import { useEmbedForm } from '@/hooks';
+import { useExtractForm } from '@/hooks/use-extract-form';
 
 interface Props {
   isActive: boolean;
 }
 
+type Mode = 'embed' | 'extract';
+
 export function SteganographyScreen({ isActive }: Props) {
-  const [mode, setMode] = useState<'embed' | 'extract'>('embed');
-  const [step, setStep] = useState(0);
+  const [mode, setMode] = useState<Mode>('embed');
   const [showPassword, setShowPassword] = useState(false);
   
+  // Embed form
+  const embedForm = useEmbedForm();
+  const { 
+    form: embedFormState,
+    coverImage: embedCoverImage,
+    coverPreview: embedCoverPreview,
+    handleImageChange: handleEmbedImageChange,
+    onSubmit: onEmbedSubmit,
+    isPending: isEmbedPending,
+    data: embedData,
+  } = embedForm;
+
+  // Extract form
+  const extractForm = useExtractForm();
   const {
-    form,
-    coverImage,
-    coverPreview,
-    handleImageChange,
-    onSubmit,
-    isPending,
-    data,
-  } = useEmbedForm();
+    form: extractFormState,
+    stegoImage: extractStegoImage,
+    stegoPreview: extractStegoPreview,
+    handleImageChange: handleExtractImageChange,
+    onSubmit: onExtractSubmit,
+    isPending: isExtractPending,
+    data: extractData,
+  } = extractForm;
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = form;
-  const useEncryption = watch('useEncryption');
-  const message = watch('message');
+  // Reset forms when switching mode
+  const handleModeChange = useCallback((newMode: Mode) => {
+    if (newMode === mode) return;
+    setMode(newMode);
+    embedFormState.reset();
+    extractFormState.reset();
+  }, [mode, embedFormState, extractFormState]);
 
-  // Auto-advance steps
-  useEffect(() => {
-    if (data) setStep(3);
-    else if (message && message.length > 0) setStep(2);
-    else if (coverImage) setStep(1);
-    else setStep(0);
-  }, [coverImage, message, data]);
+  // Current form state based on mode
+  const currentImage = mode === 'embed' ? embedCoverImage : extractStegoImage;
+  const currentPreview = mode === 'embed' ? embedCoverPreview : extractStegoPreview;
+  const isPending = mode === 'embed' ? isEmbedPending : isExtractPending;
+  const result = mode === 'embed' ? embedData : extractData;
 
-  const steps = [
-    { num: 1, label: 'Ảnh gốc' },
-    { num: 2, label: 'Tin nhắn' },
+  // Calculate step
+  const getStep = () => {
+    if (result) return 3;
+    if (mode === 'embed') {
+      const msg = embedFormState.watch('message');
+      if (msg && msg.length > 0) return 2;
+      if (embedCoverImage) return 1;
+    } else {
+      if (extractStegoImage) return 1;
+    }
+    return 0;
+  };
+
+  const step = getStep();
+
+  const embedSteps = [
+    { num: 1, label: 'Chọn ảnh' },
+    { num: 2, label: 'Nhập tin' },
     { num: 3, label: 'Bảo mật' },
-    { num: 4, label: 'Kết quả' },
+    { num: 4, label: 'Hoàn tất' },
   ];
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleImageChange(e);
-  };
+  const extractSteps = [
+    { num: 1, label: 'Chọn ảnh' },
+    { num: 2, label: 'Giải mã' },
+    { num: 3, label: 'Kết quả' },
+  ];
+
+  const steps = mode === 'embed' ? embedSteps : extractSteps;
 
   return (
     <div className="screen-content">
-      {/* Left Panel - Info */}
-      <div className="screen-left">
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: isActive ? 1 : 0.5, x: isActive ? 0 : -20 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <div className="feature-number">01 / 03</div>
-          <h1 className="heading-lg feature-title">
-            Giấu Tin<br />
-            <span className="text-[var(--steganography)]">Steganography</span>
-          </h1>
-          <p className="feature-desc">
-            Ẩn thông điệp văn bản bí mật vào trong ảnh sử dụng thuật toán LSB 
-            (Least Significant Bit). Hỗ trợ mã hóa AES-256 cho bảo mật tối đa.
-          </p>
+      {/* Left Panel - Hero Info */}
+      <motion.div 
+        className="screen-left"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isActive ? 1 : 0.3 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="relative">
+          {/* Feature Tag */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="inline-flex items-center gap-2 px-4 py-2 border-2 border-[var(--steganography)] text-[var(--steganography)] text-sm font-semibold tracking-wider uppercase mb-6"
+          >
+            <Sparkles className="w-4 h-4" />
+            Feature 01
+          </motion.div>
 
-          {/* Mode Toggle */}
-          <div className="mode-toggle">
+          {/* Main Title */}
+          <motion.h1 
+            className="heading-xl mb-6"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <span className="block">Giấu Tin</span>
+            <span className="block text-[var(--steganography)]">Steganography</span>
+          </motion.h1>
+
+          {/* Description */}
+          <motion.p 
+            className="text-lg leading-relaxed text-[var(--muted-foreground)] max-w-md mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            Ẩn thông điệp bí mật vào trong ảnh một cách hoàn toàn vô hình. 
+            Sử dụng thuật toán <strong className="text-[var(--foreground)]">LSB</strong> kết hợp 
+            mã hóa <strong className="text-[var(--foreground)]">AES-256</strong>.
+          </motion.p>
+
+          {/* Mode Toggle - Premium Style */}
+          <motion.div 
+            className="inline-flex border-2 border-[var(--border)] overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
             <button 
-              className={`mode-btn ${mode === 'embed' ? 'active' : ''}`}
-              onClick={() => setMode('embed')}
+              className={`relative px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 ${
+                mode === 'embed' 
+                  ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' 
+                  : 'bg-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
+              }`}
+              onClick={() => handleModeChange('embed')}
             >
-              Nhúng
+              <span className="relative z-10 flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                Nhúng
+              </span>
             </button>
             <button 
-              className={`mode-btn ${mode === 'extract' ? 'active' : ''}`}
-              onClick={() => setMode('extract')}
+              className={`relative px-8 py-4 text-sm font-bold uppercase tracking-widest transition-all duration-300 border-l-2 border-[var(--border)] ${
+                mode === 'extract' 
+                  ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' 
+                  : 'bg-transparent text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
+              }`}
+              onClick={() => handleModeChange('extract')}
             >
-              Trích xuất
+              <span className="relative z-10 flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Trích xuất
+              </span>
             </button>
-          </div>
+          </motion.div>
 
-          {/* Steps Indicator */}
-          <div className="steps-inline">
+          {/* Steps Progress */}
+          <motion.div 
+            className="mt-10 flex items-center gap-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
             {steps.map((s, i) => (
               <div 
-                key={s.num} 
-                className={`step-item ${i < step ? 'completed' : ''} ${i === step ? 'active' : ''}`}
+                key={s.num}
+                className={`flex items-center gap-3 pr-4 ${i < steps.length - 1 ? 'border-r-2 border-[var(--border)]' : ''}`}
               >
-                <div className="step-number">
-                  {i < step ? <Check className="w-3 h-3" /> : s.num}
+                <div className={`
+                  w-10 h-10 flex items-center justify-center text-sm font-bold transition-all duration-300
+                  ${i < step 
+                    ? 'bg-[var(--success)] text-white' 
+                    : i === step 
+                      ? 'bg-[var(--primary)] text-[var(--primary-foreground)] scale-110' 
+                      : 'border-2 border-[var(--border)] text-[var(--muted-foreground)]'
+                  }
+                `}>
+                  {i < step ? <Check className="w-5 h-5" /> : s.num}
                 </div>
-                <span className="step-label">{s.label}</span>
+                <span className={`text-sm font-medium hidden lg:block ${
+                  i <= step ? 'text-[var(--foreground)]' : 'text-[var(--muted-foreground)]'
+                }`}>
+                  {s.label}
+                </span>
               </div>
             ))}
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      </motion.div>
 
-      {/* Right Panel - Form */}
-      <div className="screen-right">
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: isActive ? 1 : 0.5, x: isActive ? 0 : 20 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Step 1: Upload Image */}
-            <div className="panel-card">
-              <div className="panel-header">
-                <h3 className="panel-title flex items-center gap-2">
-                  <Upload className="w-4 h-4" />
-                  Chọn ảnh gốc
-                </h3>
-                {coverImage && (
-                  <span className="panel-badge bg-[var(--success)] text-white">Đã chọn</span>
-                )}
+      {/* Right Panel - Interactive Form */}
+      <motion.div 
+        className="screen-right"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: isActive ? 1 : 0.3, x: isActive ? 0 : 30 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <AnimatePresence mode="wait">
+          {mode === 'embed' ? (
+            <motion.form 
+              key="embed"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.4 }}
+              onSubmit={embedFormState.handleSubmit(onEmbedSubmit)} 
+              className="space-y-5 h-full flex flex-col"
+            >
+              {/* Upload Card */}
+              <div className="panel-card group hover:border-[var(--steganography)] transition-colors">
+                <div className="panel-header">
+                  <h3 className="panel-title flex items-center gap-2">
+                    <div className="w-8 h-8 bg-[var(--steganography)]/10 flex items-center justify-center">
+                      <Upload className="w-4 h-4 text-[var(--steganography)]" />
+                    </div>
+                    Ảnh gốc
+                  </h3>
+                  {embedCoverImage && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="px-3 py-1 bg-[var(--success)] text-white text-xs font-bold"
+                    >
+                      ✓ Đã chọn
+                    </motion.span>
+                  )}
+                </div>
+
+                <label className={`upload-zone block cursor-pointer group-hover:border-[var(--steganography)] ${embedCoverImage ? 'has-file' : ''}`}>
+                  <input
+                    type="file"
+                    accept="image/png,image/bmp,image/jpeg"
+                    onChange={(e) => handleEmbedImageChange(e)}
+                    className="hidden"
+                  />
+                  <AnimatePresence mode="wait">
+                    {embedCoverPreview ? (
+                      <motion.div
+                        key="preview"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="relative"
+                      >
+                        <img src={embedCoverPreview} alt="Preview" className="upload-preview mx-auto" />
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            embedFormState.reset();
+                          }}
+                          className="absolute top-2 right-2 w-8 h-8 bg-[var(--destructive)] text-white flex items-center justify-center hover:scale-110 transition-transform"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="upload"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <Upload className="w-12 h-12 mx-auto mb-3 text-[var(--muted-foreground)] group-hover:text-[var(--steganography)] transition-colors" />
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          <strong className="text-[var(--foreground)] underline">Click để chọn</strong> hoặc kéo thả
+                        </p>
+                        <p className="text-xs text-[var(--muted-foreground)] mt-2">PNG, BMP, JPG • Max 10MB</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </label>
               </div>
 
-              <label className={`upload-zone block ${coverImage ? 'has-file' : ''}`}>
-                <input
-                  type="file"
-                  accept="image/png,image/bmp,image/jpeg"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                {coverPreview ? (
-                  <img src={coverPreview} alt="Preview" className="upload-preview mx-auto" />
-                ) : (
-                  <>
-                    <Upload className="upload-icon mx-auto" />
-                    <p className="upload-text">
-                      <strong>Click để chọn</strong> hoặc kéo thả ảnh
-                    </p>
-                    <p className="text-xs text-[var(--muted-foreground)] mt-2">PNG, BMP, JPG (Max 10MB)</p>
-                  </>
-                )}
-              </label>
-            </div>
-
-            {/* Step 2: Enter Message - Show when image selected */}
-            <AnimatePresence>
-              {coverImage && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="panel-card"
-                >
-                  <div className="panel-header">
-                    <h3 className="panel-title flex items-center gap-2">
-                      <Lock className="w-4 h-4" />
-                      Tin nhắn bí mật
-                    </h3>
-                    <span className="text-mono text-sm text-[var(--muted-foreground)]">
-                      {message?.length || 0} ký tự
-                    </span>
-                  </div>
-
-                  <div className="field-group">
-                    <textarea
-                      {...register('message')}
-                      placeholder="Nhập tin nhắn bí mật của bạn..."
-                      className="field-input field-textarea"
-                    />
-                    {errors.message && (
-                      <p className="text-sm text-[var(--destructive)] mt-1">{errors.message.message}</p>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Step 3: Encryption - Show when message entered */}
-            <AnimatePresence>
-              {message && message.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="panel-card"
-                >
-                  <div className="panel-header">
-                    <h3 className="panel-title">Tùy chọn bảo mật</h3>
-                  </div>
-
-                  <label 
-                    className={`checkbox-group ${useEncryption ? 'checked' : ''}`}
-                    onClick={() => setValue('useEncryption', !useEncryption)}
+              {/* Message Input - Animate in when image selected */}
+              <AnimatePresence>
+                {embedCoverImage && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: 'auto', marginTop: 20 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    className="panel-card"
                   >
-                    <div className="checkbox-box">
-                      {useEncryption && <Check className="w-3 h-3" />}
+                    <div className="panel-header">
+                      <h3 className="panel-title flex items-center gap-2">
+                        <div className="w-8 h-8 bg-[var(--steganography)]/10 flex items-center justify-center">
+                          <Lock className="w-4 h-4 text-[var(--steganography)]" />
+                        </div>
+                        Tin nhắn bí mật
+                      </h3>
+                      <span className="text-mono text-sm text-[var(--muted-foreground)]">
+                        {embedFormState.watch('message')?.length || 0} ký tự
+                      </span>
                     </div>
-                    <div>
-                      <div className="font-medium">Mã hóa AES-256</div>
-                      <div className="text-sm text-[var(--muted-foreground)]">Khuyến nghị cho thông tin nhạy cảm</div>
-                    </div>
-                  </label>
+                    <textarea
+                      {...embedFormState.register('message')}
+                      placeholder="Nhập nội dung bí mật của bạn tại đây..."
+                      className="field-input field-textarea font-medium"
+                      rows={4}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-                  {useEncryption && (
-                    <div className="field-group mt-4">
+              {/* Encryption Option */}
+              <AnimatePresence>
+                {embedFormState.watch('message')?.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card"
+                  >
+                    <label 
+                      className={`checkbox-group cursor-pointer ${embedFormState.watch('useEncryption') ? 'checked' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        {...embedFormState.register('useEncryption')}
+                        className="hidden"
+                      />
+                      <div className="checkbox-box">
+                        {embedFormState.watch('useEncryption') && <Check className="w-4 h-4" />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-[var(--steganography)]" />
+                          Mã hóa AES-256
+                        </div>
+                        <div className="text-sm text-[var(--muted-foreground)]">Bảo vệ tối đa cho thông tin nhạy cảm</div>
+                      </div>
+                    </label>
+
+                    {embedFormState.watch('useEncryption') && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="mt-4"
+                      >
+                        <div className="field-label">
+                          <span className="font-semibold">Mật khẩu</span>
+                        </div>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            {...embedFormState.register('password')}
+                            placeholder="Nhập mật khẩu mạnh..."
+                            className="field-input pr-12"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      disabled={isEmbedPending}
+                      className="btn btn-primary btn-block mt-6 group"
+                    >
+                      {isEmbedPending ? (
+                        <div className="flex items-center gap-3">
+                          <div className="loading-spinner w-5 h-5" />
+                          <span>Đang xử lý...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <span>Nhúng Tin Nhắn</span>
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      )}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Result */}
+              <AnimatePresence>
+                {embedData && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="result-card mt-auto"
+                  >
+                    <div className="result-header">
+                      <div className="result-icon">
+                        <Check className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="result-title">Nhúng thành công!</div>
+                        <div className="result-subtitle">Tin nhắn đã được giấu an toàn trong ảnh</div>
+                      </div>
+                    </div>
+
+                    <div className="metrics-grid">
+                      <div className="metric-box">
+                        <div className="metric-value">{embedData.message_length}</div>
+                        <div className="metric-label">Ký tự</div>
+                      </div>
+                      <div className="metric-box">
+                        <div className="metric-value text-[var(--success)]">{embedData.psnr?.toFixed(1) || '∞'}</div>
+                        <div className="metric-label">PSNR dB</div>
+                      </div>
+                      <div className="metric-box">
+                        <div className="metric-value">{embedData.ssim?.toFixed(4) || '1.0'}</div>
+                        <div className="metric-label">SSIM</div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (embedData.stego_image) {
+                          const link = document.createElement('a');
+                          link.href = embedData.stego_image;
+                          link.download = 'stego_image.png';
+                          link.click();
+                        }
+                      }}
+                      className="btn btn-primary btn-block group"
+                    >
+                      <Download className="w-5 h-5" />
+                      <span>Tải ảnh Stego</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.form>
+          ) : (
+            /* EXTRACT MODE */
+            <motion.form 
+              key="extract"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -30 }}
+              transition={{ duration: 0.4 }}
+              onSubmit={extractFormState.handleSubmit(onExtractSubmit)} 
+              className="space-y-5 h-full flex flex-col"
+            >
+              {/* Upload Stego Image */}
+              <div className="panel-card group hover:border-[var(--steganography)] transition-colors">
+                <div className="panel-header">
+                  <h3 className="panel-title flex items-center gap-2">
+                    <div className="w-8 h-8 bg-[var(--steganography)]/10 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-[var(--steganography)]" />
+                    </div>
+                    Ảnh Stego
+                  </h3>
+                  {extractStegoImage && (
+                    <motion.span 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="px-3 py-1 bg-[var(--success)] text-white text-xs font-bold"
+                    >
+                      ✓ Đã chọn
+                    </motion.span>
+                  )}
+                </div>
+
+                <label className={`upload-zone block cursor-pointer ${extractStegoImage ? 'has-file' : ''}`}>
+                  <input
+                    type="file"
+                    accept="image/png,image/bmp"
+                    onChange={(e) => handleExtractImageChange(e)}
+                    className="hidden"
+                  />
+                  <AnimatePresence mode="wait">
+                    {extractStegoPreview ? (
+                      <motion.div
+                        key="preview"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="relative"
+                      >
+                        <img src={extractStegoPreview} alt="Stego" className="upload-preview mx-auto" />
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            extractFormState.reset();
+                          }}
+                          className="absolute top-2 right-2 w-8 h-8 bg-[var(--destructive)] text-white flex items-center justify-center hover:scale-110 transition-transform"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                        <Upload className="w-12 h-12 mx-auto mb-3 text-[var(--muted-foreground)]" />
+                        <p className="text-sm">
+                          <strong className="text-[var(--foreground)] underline">Chọn ảnh Stego</strong> để trích xuất tin nhắn
+                        </p>
+                        <p className="text-xs text-[var(--muted-foreground)] mt-2">PNG, BMP (ảnh đã nhúng tin)</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </label>
+              </div>
+
+              {/* Password if encrypted */}
+              <AnimatePresence>
+                {extractStegoImage && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="panel-card"
+                  >
+                    <div className="panel-header">
+                      <h3 className="panel-title">Giải mã (nếu có)</h3>
+                    </div>
+                    
+                    <div className="field-group">
                       <div className="field-label">
                         <span>Mật khẩu</span>
+                        <span className="text-xs text-[var(--muted-foreground)]">Để trống nếu không mã hóa</span>
                       </div>
                       <div className="relative">
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          {...register('password')}
-                          placeholder="Nhập mật khẩu mạnh..."
+                          {...extractFormState.register('password')}
+                          placeholder="Nhập mật khẩu..."
                           className="field-input pr-12"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                          className="absolute right-4 top-1/2 -translate-y-1/2"
                         >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
-                      {errors.password && (
-                        <p className="text-sm text-[var(--destructive)] mt-1">{errors.password.message}</p>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isExtractPending}
+                      className="btn btn-primary btn-block mt-4"
+                    >
+                      {isExtractPending ? (
+                        <div className="flex items-center gap-3">
+                          <div className="loading-spinner w-5 h-5" />
+                          <span>Đang trích xuất...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5" />
+                          <span>Trích Xuất Tin Nhắn</span>
+                        </div>
                       )}
-                    </div>
-                  )}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={isPending || !coverImage}
-                    className="btn btn-primary btn-block mt-4"
+              {/* Extract Result */}
+              <AnimatePresence>
+                {extractData && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="result-card mt-auto"
                   >
-                    {isPending ? (
-                      <>
-                        <div className="loading-spinner w-4 h-4" />
-                        Đang xử lý...
-                      </>
-                    ) : (
-                      <>
-                        Nhúng tin nhắn
-                        <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <div className="result-header">
+                      <div className="result-icon">
+                        <Check className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="result-title">Trích xuất thành công!</div>
+                        <div className="result-subtitle">Đã tìm thấy tin nhắn ẩn</div>
+                      </div>
+                    </div>
 
-            {/* Step 4: Result */}
-            <AnimatePresence>
-              {data && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="result-card"
-                >
-                  <div className="result-header">
-                    <div className="result-icon">
-                      <Check className="w-5 h-5" />
+                    <div className="p-4 border-2 border-[var(--border)] bg-[var(--secondary)] font-mono text-sm leading-relaxed max-h-40 overflow-auto">
+                      {extractData.message || 'Không tìm thấy tin nhắn'}
                     </div>
-                    <div>
-                      <div className="result-title">Nhúng thành công!</div>
-                      <div className="result-subtitle">Tin nhắn đã được giấu an toàn</div>
-                    </div>
-                  </div>
 
-                  <div className="metrics-grid">
-                    <div className="metric-box">
-                      <div className="metric-value">{data.message_length}</div>
-                      <div className="metric-label">Ký tự</div>
-                    </div>
-                    <div className="metric-box">
-                      <div className="metric-value">{data.psnr?.toFixed(1) || 'N/A'}</div>
-                      <div className="metric-label">PSNR (dB)</div>
-                    </div>
-                    <div className="metric-box">
-                      <div className="metric-value">{data.ssim?.toFixed(3) || 'N/A'}</div>
-                      <div className="metric-label">SSIM</div>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (data.stego_image) {
-                        const link = document.createElement('a');
-                        link.href = data.stego_image;
-                        link.download = 'stego_image.png';
-                        link.click();
-                      }
-                    }}
-                    className="btn btn-primary btn-block"
-                  >
-                    <Download className="w-4 h-4" />
-                    Tải ảnh Stego
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </form>
-        </motion.div>
-      </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(extractData.message || '');
+                      }}
+                      className="btn btn-outline btn-block mt-4"
+                    >
+                      Copy tin nhắn
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.form>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Loading Overlay */}
-      {isPending && (
-        <div className="loading-overlay">
-          <div className="loading-spinner" />
-          <div className="loading-text">Đang nhúng tin nhắn vào ảnh...</div>
-          <div className="loading-progress">
-            <div className="loading-progress-bar" />
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isPending && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="loading-overlay"
+          >
+            <div className="loading-spinner" />
+            <div className="loading-text">
+              {mode === 'embed' ? 'Đang nhúng tin nhắn...' : 'Đang trích xuất...'}
+            </div>
+            <div className="loading-progress">
+              <div className="loading-progress-bar" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
