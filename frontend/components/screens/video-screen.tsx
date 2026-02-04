@@ -460,6 +460,17 @@ export function VideoScreen({ isActive }: Props) {
                       </div>
                     </div>
 
+                    {/* Video Preview */}
+                    {embedData.watermarked_video && (
+                      <div className="p-4 border-2 border-[var(--border)] bg-[var(--secondary)] mb-4">
+                        <video 
+                          src={embedData.watermarked_video} 
+                          controls
+                          className="max-h-64 w-full mx-auto object-contain rounded"
+                        />
+                      </div>
+                    )}
+
                     <div className="metrics-grid">
                       <div className="metric-box">
                         <div className="metric-value counter">

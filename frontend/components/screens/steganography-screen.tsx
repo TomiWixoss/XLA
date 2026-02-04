@@ -432,6 +432,17 @@ export function SteganographyScreen({ isActive }: Props) {
                       </div>
                     </div>
 
+                    {/* Image Preview */}
+                    {embedData.stego_image && (
+                      <div className="p-4 border-2 border-[var(--border)] bg-[var(--secondary)] mb-4">
+                        <img 
+                          src={embedData.stego_image} 
+                          alt="Stego Image" 
+                          className="max-h-64 mx-auto object-contain rounded"
+                        />
+                      </div>
+                    )}
+
                     <div className="metrics-grid">
                       <div className="metric-box">
                         <div className="metric-value counter">
