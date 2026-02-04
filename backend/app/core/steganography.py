@@ -65,13 +65,13 @@ class LSB_Stego:
         return unpad(cipher.decrypt(ct), AES.block_size).decode()
     
     def _text_to_binary(self, text):
-        """Chuyển text sang chuỗi binary"""
-        return ''.join(format(ord(char), '08b') for char in text)
+        """Chuyển text sang chuỗi binary (UTF-8)"""
+        return ''.join(format(byte, '08b') for byte in text.encode('utf-8'))
     
     def _binary_to_text(self, binary):
-        """Chuyển chuỗi binary sang text"""
-        chars = [binary[i:i+8] for i in range(0, len(binary), 8)]
-        return ''.join(chr(int(char, 2)) for char in chars)
+        """Chuyển chuỗi binary sang text (UTF-8)"""
+        bytes_list = [int(binary[i:i+8], 2) for i in range(0, len(binary), 8) if len(binary[i:i+8]) == 8]
+        return bytearray(bytes_list).decode('utf-8', errors='ignore')
     
     def _optimal_pixel_adjustment(self, original_pixel, stego_pixel, k=1):
         """
@@ -327,19 +327,13 @@ class LSB_Stego:
                     for k in range(3):
                         binary_message += str(image[i, j, k] & 1)
         
-        # Chuyển binary sang text
-        all_bytes = [binary_message[i:i+8] for i in range(0, len(binary_message), 8)]
-        decoded_message = ""
+        # Chuyển binary sang text (UTF-8)
+        bytes_list = [int(binary_message[i:i+8], 2) for i in range(0, len(binary_message), 8) if len(binary_message[i:i+8]) == 8]
+        decoded_message = bytearray(bytes_list).decode('utf-8', errors='ignore')
         
-        for byte in all_bytes:
-            if len(byte) == 8:
-                decoded_message += chr(int(byte, 2))
-                if decoded_message.endswith(self.DELIMITER):
-                    break
-        
-        # Loại bỏ delimiter
+        # Tìm và loại bỏ delimiter
         if self.DELIMITER in decoded_message:
-            decoded_message = decoded_message.replace(self.DELIMITER, "")
+            decoded_message = decoded_message.split(self.DELIMITER)[0]
         else:
             raise ValueError("No hidden message found or image corrupted")
         
