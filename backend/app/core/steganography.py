@@ -1,345 +1,343 @@
 """
-LSB Steganography - Giấu tin mật trong ảnh
-Chuẩn học thuật theo:
-- Analysis of LSB based image steganography techniques (2004)
-- Adaptive LSB based on visual color sensitivity (2020)
-- LSB Pseudorandom Algorithm using Skew Tent Map (2019)
+LSB Steganography - Giấu tin mật trong ảnh sử dụng thuật toán LSB (Bit Cuối Cùng)
 """
 
+# Thư viện numpy để xử lý mảng số (ảnh là mảng 3 chiều)
 import numpy as np
+# Thư viện OpenCV để đọc/ghi ảnh và xử lý ảnh
 import cv2
+# Thư viện AES từ PyCryptodome để mã hóa tin nhắn
 from Crypto.Cipher import AES
+# Thư viện pad/unpad để làm tròn dữ liệu cho AES (AES yêu cầu dữ liệu chia hết cho 16 byte)
 from Crypto.Util.Padding import pad, unpad
+# Thư viện get_random_bytes để tạo chuỗi ngẫu nhiên cho AES
 from Crypto.Random import get_random_bytes
+# Thư viện hashlib để băm mật khẩu thành khóa 256-bit cho AES
 import hashlib
 
 
 class LSB_Stego:
     """
-    Class xử lý giấu tin sử dụng thuật toán LSB (Least Significant Bit)
+    Lớp xử lý giấu tin sử dụng thuật toán LSB (Bit Cuối Cùng)
     
-    Cải tiến theo chuẩn học thuật:
-    1. Adaptive LSB: Nhúng nhiều bits ở vùng edge, ít bits ở vùng smooth
-    2. Pseudorandom embedding: Nhúng theo thứ tự ngẫu nhiên thay vì tuần tự
-    3. AES encryption: Mã hóa message trước khi nhúng
+    Nguyên lý LSB:
+    - Mỗi điểm ảnh có 3 kênh màu (Xanh dương, Xanh lá, Đỏ), mỗi kênh 8 bit (0-255)
+    - Bit cuối cùng thay đổi ít ảnh hưởng đến màu sắc (thay đổi ±1)
+    - Nhúng tin bằng cách thay thế bit cuối của mỗi kênh màu bằng bit của tin nhắn
+    
+    Tính năng:
+    - Mã hóa AES-256: Mã hóa tin nhắn trước khi nhúng để bảo mật
     """
     
+    # Chuỗi đánh dấu kết thúc tin nhắn (dùng khi trích xuất)
     DELIMITER = "<<<END_OF_MESSAGE>>>"
     
-    def __init__(self, use_encryption=False, password=None, use_adaptive=False, use_pseudorandom=False, seed=None):
+    def __init__(self, use_encryption=False, password=None):
         """
-        Args:
-            use_encryption: Có mã hóa message trước khi nhúng không
-            password: Mật khẩu để mã hóa (nếu use_encryption=True)
-            use_adaptive: Sử dụng Adaptive LSB (nhúng nhiều bits ở edge)
-            use_pseudorandom: Sử dụng pseudorandom embedding (tăng security)
-            seed: Seed cho pseudorandom (nếu use_pseudorandom=True)
+        Khởi tạo đối tượng LSB_Stego
+        
+        Tham số:
+            use_encryption (bool): Có mã hóa tin nhắn trước khi nhúng không
+                - True: Mã hóa bằng AES-256 (cần mật khẩu)
+                - False: Nhúng trực tiếp (không bảo mật)
+            password (str): Mật khẩu để mã hóa/giải mã (bắt buộc nếu use_encryption=True)
         """
+        # Lưu các tham số vào thuộc tính của đối tượng
         self.use_encryption = use_encryption
         self.password = password
-        self.use_adaptive = use_adaptive
-        self.use_pseudorandom = use_pseudorandom
-        self.seed = seed if seed is not None else 42
         
+        # Kiểm tra: nếu bật mã hóa mà không có mật khẩu thì báo lỗi
         if use_encryption and not password:
             raise ValueError("Password is required when encryption is enabled")
     
     def _get_key(self):
-        """Tạo AES key từ password"""
+        """
+        Tạo khóa AES 256-bit từ mật khẩu
+        
+        AES-256 yêu cầu khóa dài 32 byte (256 bit)
+        Dùng SHA-256 để băm mật khẩu thành khóa cố định 32 byte
+        
+        Trả về:
+            bytes: Khóa 32 byte để dùng cho AES-256
+        """
+        # Băm mật khẩu bằng SHA-256 (kết quả luôn là 32 byte)
+        # encode() chuyển chuỗi thành byte
+        # digest() trả về kết quả băm dạng byte (không phải chuỗi hex)
         return hashlib.sha256(self.password.encode()).digest()
     
     def _encrypt_message(self, message):
-        """Mã hóa message bằng AES"""
+        """
+        Mã hóa tin nhắn bằng AES-256-CBC
+        
+        AES-CBC (Mã Hóa Khối Xích):
+        - Chia tin nhắn thành các khối 16 byte
+        - Mỗi khối được XOR với khối trước rồi mã hóa
+        - Khối đầu tiên XOR với chuỗi khởi tạo ngẫu nhiên
+        
+        Tham số:
+            message (str): Tin nhắn cần mã hóa
+        
+        Trả về:
+            bytes: Chuỗi khởi tạo (16 byte) + văn bản đã mã hóa
+        """
+        # Lấy khóa 32 byte từ mật khẩu
         key = self._get_key()
+        # Tạo bộ mã hóa AES với chế độ CBC (cần chuỗi khởi tạo ngẫu nhiên)
         cipher = AES.new(key, AES.MODE_CBC)
+        # Mã hóa tin nhắn:
+        # 1. message.encode(): chuyển chuỗi thành byte (UTF-8)
+        # 2. pad(..., AES.block_size): làm tròn để chia hết cho 16 byte
+        # 3. cipher.encrypt(): mã hóa
         ct_bytes = cipher.encrypt(pad(message.encode(), AES.block_size))
+        # Lấy chuỗi khởi tạo - cần lưu để giải mã
         iv = cipher.iv
+        # Trả về chuỗi khởi tạo + văn bản đã mã hóa (chuỗi khởi tạo cần để giải mã)
         return iv + ct_bytes
     
     def _decrypt_message(self, encrypted_data):
-        """Giải mã message"""
+        """
+        Giải mã tin nhắn đã được mã hóa bằng AES-256-CBC
+        
+        Tham số:
+            encrypted_data (bytes): Chuỗi khởi tạo (16 byte đầu) + văn bản đã mã hóa
+        
+        Trả về:
+            str: Tin nhắn gốc đã giải mã
+        """
+        # Lấy khóa 32 byte từ mật khẩu (phải giống lúc mã hóa)
         key = self._get_key()
+        # Tách chuỗi khởi tạo từ 16 byte đầu
         iv = encrypted_data[:16]
+        # Phần còn lại là văn bản đã mã hóa
         ct = encrypted_data[16:]
+        # Tạo bộ mã hóa AES với chế độ CBC và chuỗi khởi tạo đã lưu
         cipher = AES.new(key, AES.MODE_CBC, iv)
+        # Giải mã:
+        # 1. cipher.decrypt(ct): giải mã văn bản
+        # 2. unpad(..., AES.block_size): bỏ phần làm tròn
+        # 3. .decode(): chuyển byte thành chuỗi (UTF-8)
         return unpad(cipher.decrypt(ct), AES.block_size).decode()
     
     def _text_to_binary(self, text):
-        """Chuyển text sang chuỗi binary (UTF-8)"""
+        """
+        Chuyển văn bản sang chuỗi nhị phân (UTF-8)
+        
+        Ví dụ: "Hi" → "0100100001101001"
+        - 'H' = 72 = 01001000
+        - 'i' = 105 = 01101001
+        
+        Tham số:
+            text (str): Chuỗi văn bản cần chuyển
+        
+        Trả về:
+            str: Chuỗi nhị phân (chỉ chứa '0' và '1')
+        """
+        # text.encode('utf-8'): chuyển chuỗi thành byte (hỗ trợ tiếng Việt)
+        # for byte in ...: duyệt từng byte
+        # format(byte, '08b'): chuyển byte thành nhị phân 8 bit (có số 0 đứng đầu)
+        # ''.join(...): nối tất cả chuỗi nhị phân lại
         return ''.join(format(byte, '08b') for byte in text.encode('utf-8'))
     
     def _binary_to_text(self, binary):
-        """Chuyển chuỗi binary sang text (UTF-8)"""
+        """
+        Chuyển chuỗi nhị phân sang văn bản (UTF-8)
+        
+        Ví dụ: "0100100001101001" → "Hi"
+        
+        Tham số:
+            binary (str): Chuỗi nhị phân (chỉ chứa '0' và '1')
+        
+        Trả về:
+            str: Văn bản đã giải mã
+        """
+        # Chia nhị phân thành các nhóm 8 bit (1 byte)
+        # range(0, len(binary), 8): bắt đầu từ 0, bước nhảy 8
+        # binary[i:i+8]: lấy 8 bit
+        # int(..., 2): chuyển chuỗi nhị phân thành số nguyên (cơ số 2)
+        # if len(...) == 8: chỉ lấy nhóm đủ 8 bit (bỏ bit thừa cuối)
         bytes_list = [int(binary[i:i+8], 2) for i in range(0, len(binary), 8) if len(binary[i:i+8]) == 8]
+        # bytearray(bytes_list): tạo mảng byte từ danh sách số nguyên
+        # .decode('utf-8', errors='ignore'): chuyển byte thành chuỗi
+        # errors='ignore': bỏ qua byte không hợp lệ (tránh lỗi)
         return bytearray(bytes_list).decode('utf-8', errors='ignore')
-    
-    def _optimal_pixel_adjustment(self, original_pixel, stego_pixel, k=1):
-        """
-        Optimal Pixel Adjustment Process (OPAP) - CHUẨN PAPER CHAN & CHENG 2004
-        
-        Thuật toán OPAP để cải thiện PSNR của stego image:
-        - Nếu embedding k bits làm pixel thay đổi quá nhiều
-        - Điều chỉnh pixel để minimize distortion
-        
-        Args:
-            original_pixel: Giá trị pixel gốc (0-255)
-            stego_pixel: Giá trị pixel sau khi nhúng LSB
-            k: Số bits đã nhúng (default=1)
-        
-        Returns:
-            adjusted_pixel: Pixel đã được điều chỉnh tối ưu
-        """
-        l = 2 ** k  # 2^k
-        
-        # Tính difference (ép kiểu sang int để tránh overflow)
-        diff = int(stego_pixel) - int(original_pixel)
-        
-        # OPAP adjustment theo paper
-        if diff > l / 2:
-            # Nếu tăng quá nhiều, giảm xuống
-            adjusted = stego_pixel - l
-        elif diff < -l / 2:
-            # Nếu giảm quá nhiều, tăng lên
-            adjusted = stego_pixel + l
-        else:
-            # Trong khoảng chấp nhận được, giữ nguyên
-            adjusted = stego_pixel
-        
-        # Clip về range [0, 255]
-        return np.clip(adjusted, 0, 255)
-    
-    def _detect_edges(self, image):
-        """
-        Phát hiện edges để Adaptive LSB (CHUẨN HỌC THUẬT)
-        
-        Returns:
-            edge_map: Ma trận boolean, True = edge (có thể nhúng nhiều bits)
-        """
-        # Chuyển sang grayscale
-        if len(image.shape) == 3:
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        else:
-            gray = image
-        
-        # Canny edge detection
-        edges = cv2.Canny(gray, 100, 200)
-        
-        # Dilate để mở rộng vùng edge
-        kernel = np.ones((3, 3), np.uint8)
-        edges_dilated = cv2.dilate(edges, kernel, iterations=1)
-        
-        return edges_dilated > 0
-    
-    def _generate_pseudorandom_positions(self, total_positions, message_length):
-        """
-        Tạo vị trí ngẫu nhiên để nhúng (CHUẨN HỌC THUẬT)
-        
-        Theo paper: LSB Pseudorandom Algorithm using Skew Tent Map (2019)
-        
-        Returns:
-            positions: Array các vị trí để nhúng message
-        """
-        np.random.seed(self.seed)
-        
-        # Tạo permutation ngẫu nhiên
-        all_positions = np.arange(total_positions)
-        np.random.shuffle(all_positions)
-        
-        # Lấy số lượng positions cần thiết
-        return all_positions[:message_length]
+
     
     def embed(self, cover_image_path, secret_message, output_path):
         """
-        Nhúng thông điệp vào ảnh
+        Nhúng thông điệp vào ảnh sử dụng thuật toán LSB Chuẩn
         
-        Args:
-            cover_image_path: Đường dẫn ảnh gốc
-            secret_message: Thông điệp cần giấu
-            output_path: Đường dẫn lưu ảnh stego
+        Quy trình:
+        1. Đọc ảnh gốc
+        2. Mã hóa tin nhắn (nếu bật mã hóa)
+        3. Thêm chuỗi đánh dấu kết thúc
+        4. Chuyển tin nhắn sang nhị phân
+        5. Nhúng nhị phân vào bit cuối của các điểm ảnh (tuần tự)
+        6. Lưu ảnh đã nhúng tin
         
-        Returns:
+        Tham số:
+            cover_image_path (str): Đường dẫn ảnh gốc (PNG, BMP, JPG)
+            secret_message (str): Thông điệp cần giấu
+            output_path (str): Đường dẫn lưu ảnh đã nhúng tin (nên dùng PNG)
+        
+        Trả về:
             dict: Thông tin về quá trình nhúng
         """
-        # Đọc ảnh
+        # ===== BƯỚC 1: ĐỌC ẢNH GỐC =====
+        # cv2.imread: đọc ảnh thành mảng numpy (chiều_cao, chiều_rộng, 3)
+        # 3 kênh: BGR (Xanh dương, Xanh lá, Đỏ)
         image = cv2.imread(cover_image_path)
+        # Kiểm tra ảnh có đọc được không
         if image is None:
             raise ValueError(f"Cannot read image: {cover_image_path}")
         
-        # Mã hóa message nếu cần
-        if self.use_encryption:
+        # ===== BƯỚC 2: MÃ HÓA TIN NHẮN (NẾU CẦN) =====
+        if self.use_encryption:  # Nếu bật mã hóa
+            # Mã hóa tin nhắn bằng AES-256-CBC
             encrypted = self._encrypt_message(secret_message)
-            message_to_hide = encrypted.hex()  # Convert bytes to hex string
-        else:
+            # Chuyển byte thành chuỗi hex để dễ xử lý
+            # Ví dụ: b'\x01\x02' → "0102"
+            message_to_hide = encrypted.hex()
+        else:  # Không mã hóa
+            # Dùng tin nhắn gốc
             message_to_hide = secret_message
         
-        # Thêm delimiter
+        # ===== BƯỚC 3: THÊM CHUỖI ĐÁNH DẤU KẾT THÚC =====
+        # Thêm chuỗi đặc biệt để đánh dấu kết thúc tin nhắn
+        # Khi trích xuất, sẽ dừng lại khi gặp chuỗi này
         message_to_hide += self.DELIMITER
         
-        # Chuyển sang binary
+        # ===== BƯỚC 4: CHUYỂN TIN NHẮN SANG NHỊ PHÂN =====
+        # Chuyển chuỗi thành chuỗi '0' và '1'
+        # Ví dụ: "Hi" → "0100100001101001"
         binary_message = self._text_to_binary(message_to_hide)
+        # Đếm số bit cần nhúng
         message_length = len(binary_message)
         
-        # Kiểm tra capacity
-        image_capacity = image.shape[0] * image.shape[1] * 3  # 3 channels
+        # ===== BƯỚC 5: KIỂM TRA DUNG LƯỢNG =====
+        # Tính tổng số bit có thể nhúng trong ảnh
+        # image.shape[0]: chiều cao
+        # image.shape[1]: chiều rộng
+        # 3: số kênh (Xanh dương, Xanh lá, Đỏ) - mỗi kênh có thể nhúng 1 bit
+        image_capacity = image.shape[0] * image.shape[1] * 3
+        # Kiểm tra tin nhắn có vừa không
         if message_length > image_capacity:
             raise ValueError(f"Message too large. Max capacity: {image_capacity} bits, Message: {message_length} bits")
         
-        # Nhúng message vào LSB
+        # ===== BƯỚC 6: NHÚNG TIN NHẮN VÀO ẢNH (LSB CHUẨN) =====
+        # Sao chép ảnh gốc để không làm thay đổi ảnh gốc
         stego_image = image.copy()
         
-        if self.use_adaptive:
-            # ADAPTIVE LSB (CHUẨN HỌC THUẬT)
-            # Nhúng nhiều bits ở vùng edge, ít bits ở vùng smooth
-            edge_map = self._detect_edges(image)
-            
-            data_index = 0
-            for i in range(image.shape[0]):
-                for j in range(image.shape[1]):
-                    for k in range(3):  # BGR channels
-                        if data_index >= message_length:
-                            break
+        # chỉ_số_dữ_liệu: vị trí hiện tại trong chuỗi nhị phân tin nhắn
+        data_index = 0
+        # Duyệt qua từng điểm ảnh của ảnh (tuần tự từ trái sang phải, trên xuống dưới)
+        for i in range(image.shape[0]):  # Duyệt theo chiều cao (hàng)
+            for j in range(image.shape[1]):  # Duyệt theo chiều rộng (cột)
+                for k in range(3):  # Duyệt 3 kênh: Xanh_dương(0), Xanh_lá(1), Đỏ(2)
+                    if data_index < message_length:
+                        # Lấy giá trị điểm ảnh gốc
+                        original_value = image[i, j, k]
                         
-                        if edge_map[i, j]:
-                            # Vùng edge: có thể nhúng 2 bits (LSB và bit thứ 2)
-                            if data_index < message_length:
-                                bit1 = int(binary_message[data_index])
-                                stego_image[i, j, k] = (image[i, j, k] & 0xFE) | bit1
-                                data_index += 1
-                            
-                            if data_index < message_length:
-                                bit2 = int(binary_message[data_index])
-                                stego_image[i, j, k] = (stego_image[i, j, k] & 0xFD) | (bit2 << 1)
-                                data_index += 1
-                        else:
-                            # Vùng smooth: chỉ nhúng 1 bit (LSB)
-                            bit = int(binary_message[data_index])
-                            stego_image[i, j, k] = (image[i, j, k] & 0xFE) | bit
-                            data_index += 1
-                    
-                    if data_index >= message_length:
+                        # ===== NHÚNG 1 BIT VÀO BIT CUỐI =====
+                        # Thay bit cuối bằng bit của tin nhắn
+                        # original_value & 0xFE: xóa bit cuối (AND với 11111110)
+                        # | int(binary_message[data_index]): đặt bit cuối bằng bit của tin nhắn
+                        # Ví dụ: gốc=100 (01100100), bit=1
+                        #   → 01100100 & 11111110 = 01100100
+                        #   → 01100100 | 00000001 = 01100101 (101)
+                        stego_value = (original_value & 0xFE) | int(binary_message[data_index])
+                        
+                        # Lưu giá trị mới vào ảnh
+                        stego_image[i, j, k] = stego_value
+                        data_index += 1
+                    else:
                         break
+                # Nếu đã nhúng hết tin nhắn thì thoát vòng lặp cột
                 if data_index >= message_length:
                     break
+            # Nếu đã nhúng hết tin nhắn thì thoát vòng lặp hàng
+            if data_index >= message_length:
+                break
         
-        elif self.use_pseudorandom:
-            # PSEUDORANDOM LSB (CHUẨN HỌC THUẬT)
-            # Nhúng theo thứ tự ngẫu nhiên thay vì tuần tự
-            total_positions = image.shape[0] * image.shape[1] * 3
-            positions = self._generate_pseudorandom_positions(total_positions, message_length)
-            
-            flat_image = stego_image.flatten()
-            
-            for idx, pos in enumerate(positions):
-                if idx < message_length:
-                    bit = int(binary_message[idx])
-                    flat_image[pos] = (flat_image[pos] & 0xFE) | bit
-            
-            stego_image = flat_image.reshape(image.shape)
-        
-        else:
-            # STANDARD LSB WITH OPAP (CHUẨN PAPER CHAN & CHENG 2004)
-            data_index = 0
-            for i in range(image.shape[0]):
-                for j in range(image.shape[1]):
-                    for k in range(3):  # BGR channels
-                        if data_index < message_length:
-                            original_value = image[i, j, k]
-                            
-                            # Thay LSB bằng bit của message
-                            stego_value = (original_value & 0xFE) | int(binary_message[data_index])
-                            
-                            # KHÔNG dùng OPAP cho LSB đơn giản (k=1) vì có thể làm sai LSB
-                            # OPAP chỉ hữu ích khi nhúng nhiều bits (k > 1)
-                            stego_image[i, j, k] = stego_value
-                            data_index += 1
-                        else:
-                            break
-                    if data_index >= message_length:
-                        break
-                if data_index >= message_length:
-                    break
-        
-        # Lưu ảnh stego (dùng PNG để tránh mất dữ liệu do compression)
+        # ===== BƯỚC 7: LƯU ẢNH ĐÃ NHÚNG TIN =====
+        # Dùng PNG để tránh mất dữ liệu do nén (JPG sẽ làm mất bit cuối)
+        # cv2.imwrite: ghi ảnh ra tệp tin
         cv2.imwrite(output_path, stego_image)
         
+        # ===== BƯỚC 8: TRẢ VỀ THÔNG TIN =====
+        # Trả về từ điển chứa thông tin về quá trình nhúng
         return {
-            'success': True,
-            'message_length': len(secret_message),
-            'bits_used': message_length,
-            'capacity': image_capacity,
-            'usage_percent': (message_length / image_capacity) * 100,
-            'encrypted': self.use_encryption,
-            'algorithm': 'Adaptive-LSB' if self.use_adaptive else ('Pseudorandom-LSB' if self.use_pseudorandom else 'Standard-LSB'),
-            'adaptive': self.use_adaptive,
-            'pseudorandom': self.use_pseudorandom
+            'success': True,  # Trạng thái thành công
+            'message_length': len(secret_message),  # Độ dài tin nhắn gốc (ký tự)
+            'bits_used': message_length,  # Số bit đã nhúng (bao gồm chuỗi đánh dấu)
+            'capacity': image_capacity,  # Tổng số bit có thể nhúng
+            'usage_percent': (message_length / image_capacity) * 100,  # % dung lượng đã dùng
+            'encrypted': self.use_encryption,  # Có mã hóa không
+            'algorithm': 'LSB-Chuẩn'  # Thuật toán đã dùng
         }
     
     def extract(self, stego_image_path):
         """
-        Trích xuất thông điệp từ ảnh stego
+        Trích xuất thông điệp từ ảnh đã nhúng tin sử dụng thuật toán LSB Chuẩn
         
-        Args:
-            stego_image_path: Đường dẫn ảnh stego
+        Quy trình:
+        1. Đọc ảnh đã nhúng tin
+        2. Trích xuất bit cuối từ các điểm ảnh (tuần tự)
+        3. Chuyển nhị phân thành văn bản
+        4. Tìm và loại bỏ chuỗi đánh dấu kết thúc
+        5. Giải mã tin nhắn (nếu đã mã hóa)
         
-        Returns:
-            str: Thông điệp đã giấu
+        Tham số:
+            stego_image_path (str): Đường dẫn ảnh đã nhúng tin (PNG, BMP)
+        
+        Trả về:
+            str: Thông điệp đã giấu (đã giải mã nếu có)
         """
-        # Đọc ảnh
+        # ===== BƯỚC 1: ĐỌC ẢNH ĐÃ NHÚNG TIN =====
+        # cv2.imread: đọc ảnh thành mảng numpy
         image = cv2.imread(stego_image_path)
+        # Kiểm tra ảnh có đọc được không
         if image is None:
             raise ValueError(f"Cannot read image: {stego_image_path}")
         
-        # Trích xuất LSB
+        # ===== BƯỚC 2: TRÍCH XUẤT BIT CUỐI (LSB CHUẨN) =====
+        # Khởi tạo chuỗi nhị phân rỗng để lưu các bit trích xuất
         binary_message = ""
         
-        if self.use_adaptive:
-            # ADAPTIVE LSB EXTRACTION
-            edge_map = self._detect_edges(image)
-            
-            for i in range(image.shape[0]):
-                for j in range(image.shape[1]):
-                    for k in range(3):
-                        if edge_map[i, j]:
-                            # Vùng edge: trích xuất 2 bits
-                            bit1 = image[i, j, k] & 1
-                            bit2 = (image[i, j, k] >> 1) & 1
-                            binary_message += str(bit1)
-                            binary_message += str(bit2)
-                        else:
-                            # Vùng smooth: trích xuất 1 bit
-                            binary_message += str(image[i, j, k] & 1)
+        # Duyệt qua từng điểm ảnh theo thứ tự giống lúc nhúng (tuần tự)
+        for i in range(image.shape[0]):  # Duyệt theo chiều cao
+            for j in range(image.shape[1]):  # Duyệt theo chiều rộng
+                for k in range(3):  # Duyệt 3 kênh
+                    # Lấy bit cuối của điểm ảnh
+                    # image[i, j, k] & 1: AND với 00000001 → lấy bit cuối
+                    # Ví dụ: điểm_ảnh=101 (01100101) & 1 = 1
+                    binary_message += str(image[i, j, k] & 1)
         
-        elif self.use_pseudorandom:
-            # PSEUDORANDOM LSB EXTRACTION
-            total_positions = image.shape[0] * image.shape[1] * 3
-            # Tạo lại cùng positions với cùng seed
-            positions = self._generate_pseudorandom_positions(total_positions, total_positions)
-            
-            flat_image = image.flatten()
-            
-            for pos in positions:
-                binary_message += str(flat_image[pos] & 1)
-        
-        else:
-            # STANDARD LSB EXTRACTION
-            for i in range(image.shape[0]):
-                for j in range(image.shape[1]):
-                    for k in range(3):
-                        binary_message += str(image[i, j, k] & 1)
-        
-        # Chuyển binary sang text (UTF-8)
+        # ===== BƯỚC 3: CHUYỂN NHỊ PHÂN SANG VĂN BẢN =====
+        # Chia nhị phân thành các nhóm 8 bit (1 byte)
+        # int(binary_message[i:i+8], 2): chuyển 8 bit thành số nguyên
+        # if len(...) == 8: chỉ lấy nhóm đủ 8 bit
         bytes_list = [int(binary_message[i:i+8], 2) for i in range(0, len(binary_message), 8) if len(binary_message[i:i+8]) == 8]
+        # bytearray(bytes_list): tạo mảng byte
+        # .decode('utf-8', errors='ignore'): chuyển byte thành chuỗi
         decoded_message = bytearray(bytes_list).decode('utf-8', errors='ignore')
         
-        # Tìm và loại bỏ delimiter
+        # ===== BƯỚC 4: TÌM VÀ LOẠI BỎ CHUỖI ĐÁNH DẤU KẾT THÚC =====
+        # Kiểm tra có chuỗi đánh dấu không
         if self.DELIMITER in decoded_message:
+            # Tách tin nhắn tại chuỗi đánh dấu, lấy phần trước chuỗi đánh dấu
+            # split(DELIMITER)[0]: lấy phần đầu tiên (tin nhắn thật)
             decoded_message = decoded_message.split(self.DELIMITER)[0]
         else:
+            # Không tìm thấy chuỗi đánh dấu → ảnh không có tin nhắn hoặc bị hỏng
             raise ValueError("No hidden message found or image corrupted")
         
-        # Giải mã nếu cần
-        if self.use_encryption:
+        # ===== BƯỚC 5: GIẢI MÃ TIN NHẮN (NẾU ĐÃ MÃ HÓA) =====
+        if self.use_encryption:  # Nếu đã mã hóa lúc nhúng
+            # Chuyển chuỗi hex thành byte
+            # Ví dụ: "0102" → b'\x01\x02'
             encrypted_bytes = bytes.fromhex(decoded_message)
+            # Giải mã bằng AES-256-CBC
             decoded_message = self._decrypt_message(encrypted_bytes)
         
+        # Trả về tin nhắn gốc
         return decoded_message
