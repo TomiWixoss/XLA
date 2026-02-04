@@ -9,22 +9,17 @@ export interface EmbedVideoWatermarkParams {
   alpha: number;
   frameSkip: number;
   arnoldIterations: number;
-  useSceneDetection?: boolean;
-  sceneThreshold?: number;
 }
 
 export interface EmbedVideoWatermarkResponse {
   success: boolean;
   total_frames: number;
   watermarked_frames: number;
-  scene_changes_detected?: number;
-  scene_changes_watermarked?: number;
   fps: number;
   resolution: string;
   frame_skip: number;
-  scene_detection_enabled?: boolean;
-  efficiency_improvement?: string;
   watermarked_video: string;
+  watermark_size?: number;
 }
 
 export interface ExtractVideoWatermarkParams {
@@ -50,8 +45,6 @@ export const videoApi = {
     formData.append('alpha', String(params.alpha));
     formData.append('frame_skip', String(params.frameSkip));
     formData.append('arnold_iterations', String(params.arnoldIterations));
-    formData.append('use_scene_detection', String(params.useSceneDetection ?? true));
-    formData.append('scene_threshold', String(params.sceneThreshold ?? 30.0));
 
     const response = await apiClient.post('/api/video/embed', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

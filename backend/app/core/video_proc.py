@@ -1,9 +1,5 @@
 """
 Video Watermarking - Nhúng thủy vân vào video
-Chuẩn học thuật theo:
-- A Robust Color Video Watermarking Technique Using DWT, SVD and Frame Difference (2017)
-- Scene Change Detection for Video Watermarking (2009)
-- Hybrid quasi-3D DWT/DCT and SVD video watermarking (2010)
 """
 
 import cv2
@@ -17,23 +13,15 @@ from tqdm import tqdm
 class VideoWatermark:
     """
     Class xử lý thủy vân video với DWT-DCT-SVD
-    
-    Cải tiến theo chuẩn học thuật:
-    1. Scene Change Detection: Phát hiện thay đổi cảnh bằng histogram difference
-    2. Smart Frame Selection: Chỉ nhúng vào key frames (scene changes + periodic)
-    3. Frame Difference: Tối ưu hóa bằng cách lưu frame differences
     """
     
-    def __init__(self, alpha=0.1, arnold_iterations=10, frame_skip=5, use_dwt=True, 
-                 use_scene_detection=True, scene_threshold=30.0):
+    def __init__(self, alpha=0.1, arnold_iterations=10, frame_skip=5, use_dwt=True):
         """
         Args:
             alpha: Hệ số nhúng watermark
             arnold_iterations: Số lần xáo trộn Arnold
-            frame_skip: Nhúng watermark mỗi N frames (nếu không dùng scene detection)
+            frame_skip: Nhúng watermark mỗi N frames
             use_dwt: Sử dụng DWT layer (True = DWT-DCT-SVD, False = DCT-SVD)
-            use_scene_detection: Sử dụng scene change detection (CHUẨN HỌC THUẬT)
-            scene_threshold: Ngưỡng để phát hiện scene change (0-100)
         """
         self.watermarker = DWT_DCT_SVD_Watermark(
             alpha=alpha,
@@ -42,76 +30,12 @@ class VideoWatermark:
             wavelet='haar'
         )
         self.frame_skip = frame_skip
-        self.use_scene_detection = use_scene_detection
-        self.scene_threshold = scene_threshold
     
-    def _detect_scene_changes(self, video_path):
-        """
-        Phát hiện scene changes bằng histogram difference (CHUẨN HỌC THUẬT)
-        
-        Thuật toán theo paper "A Robust Color Video Watermarking Technique Using 
-        DWT, SVD and Frame Difference" (2017):
-        1. Tính histogram cho mỗi frame (RGB channels)
-        2. So sánh histogram giữa frame hiện tại và frame trước
-        3. Nếu difference > threshold → scene change
-        
-        Args:
-            video_path: Đường dẫn video
-        
-        Returns:
-            list: Danh sách frame numbers có scene change
-        """
-        cap = cv2.VideoCapture(video_path)
-        scene_change_frames = [0]  # Frame đầu tiên luôn là scene change
-        
-        prev_hist = None
-        frame_idx = 0
-        
-        print("Detecting scene changes...")
-        
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            
-            # Tính histogram cho 3 channels (BGR)
-            hist_b = cv2.calcHist([frame], [0], None, [256], [0, 256])
-            hist_g = cv2.calcHist([frame], [1], None, [256], [0, 256])
-            hist_r = cv2.calcHist([frame], [2], None, [256], [0, 256])
-            
-            # Normalize histograms
-            hist_b = cv2.normalize(hist_b, hist_b).flatten()
-            hist_g = cv2.normalize(hist_g, hist_g).flatten()
-            hist_r = cv2.normalize(hist_r, hist_r).flatten()
-            
-            current_hist = np.concatenate([hist_b, hist_g, hist_r])
-            
-            if prev_hist is not None:
-                # Tính histogram difference (Mean Absolute Difference)
-                diff = np.mean(np.abs(current_hist - prev_hist)) * 100
-                
-                # Nếu difference > threshold → scene change
-                if diff > self.scene_threshold:
-                    scene_change_frames.append(frame_idx)
-                    print(f"Scene change detected at frame {frame_idx} (diff={diff:.2f})")
-            
-            prev_hist = current_hist
-            frame_idx += 1
-        
-        cap.release()
-        
-        print(f"Total scene changes detected: {len(scene_change_frames)}")
-        return scene_change_frames
+
     
     def embed(self, video_path, watermark_path, output_path, progress_callback=None):
         """
-        Nhúng watermark vào video với Scene Change Detection (CHUẨN HỌC THUẬT)
-        
-        Thuật toán theo paper "A Robust Color Video Watermarking Technique Using 
-        DWT, SVD and Frame Difference" (2017):
-        1. Phát hiện scene changes bằng histogram difference
-        2. Chỉ nhúng watermark vào key frames (scene changes + periodic frames)
-        3. Giảm thời gian xử lý 24x so với watermark tất cả frames
+        Nhúng watermark vào video
         
         Args:
             video_path: Đường dẫn video gốc
@@ -133,21 +57,9 @@ class VideoWatermark:
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
-        # Phát hiện scene changes (CHUẨN HỌC THUẬT)
-        if self.use_scene_detection:
-            scene_frames = self._detect_scene_changes(video_path)
-            # Thêm periodic frames để đảm bảo coverage
-            periodic_frames = list(range(0, total_frames, self.frame_skip))
-            # Merge và loại bỏ duplicates
-            key_frames = sorted(list(set(scene_frames + periodic_frames)))
-            print(f"Key frames to watermark: {len(key_frames)} out of {total_frames}")
-        else:
-            # Fallback: chỉ dùng periodic frames
-            key_frames = list(range(0, total_frames, self.frame_skip))
-        
-        # Reset video capture
-        cap.release()
-        cap = cv2.VideoCapture(video_path)
+        # Tạo danh sách frames cần watermark (mỗi frame_skip frames)
+        key_frames = list(range(0, total_frames, self.frame_skip))
+        print(f"Processing every {self.frame_skip} frames ({len(key_frames)} total)")
         
         # Tạo VideoWriter
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -158,11 +70,9 @@ class VideoWatermark:
         
         frame_count = 0
         watermarked_count = 0
-        scene_changes_used = 0
         watermark_size_result = None  # Lưu watermark size từ frame đầu tiên
         
         print(f"Processing video: {total_frames} frames, {fps} FPS")
-        print(f"Scene detection: {'Enabled' if self.use_scene_detection else 'Disabled'}")
         
         while True:
             ret, frame = cap.read()
@@ -188,10 +98,6 @@ class VideoWatermark:
                     watermarked_frame = cv2.imread(temp_watermarked_path)
                     out.write(watermarked_frame)
                     watermarked_count += 1
-                    
-                    # Check if this is a scene change frame
-                    if self.use_scene_detection and frame_count in scene_frames:
-                        scene_changes_used += 1
                     
                     # Xóa file tạm
                     os.remove(temp_frame_path)
@@ -227,14 +133,10 @@ class VideoWatermark:
             'success': True,
             'total_frames': total_frames,
             'watermarked_frames': watermarked_count,
-            'scene_changes_detected': len(scene_frames) if self.use_scene_detection else 0,
-            'scene_changes_watermarked': scene_changes_used,
             'fps': fps,
             'resolution': f"{width}x{height}",
             'frame_skip': self.frame_skip,
-            'scene_detection_enabled': self.use_scene_detection,
-            'efficiency_improvement': f"{(1 - watermarked_count/total_frames) * 100:.1f}% fewer frames processed",
-            'watermark_size': watermark_size_result  # Thêm watermark size
+            'watermark_size': watermark_size_result
         }
     
     def extract_from_frame(self, video_path, original_video_path, frame_number, watermark_size):

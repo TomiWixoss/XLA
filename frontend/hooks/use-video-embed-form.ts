@@ -21,8 +21,6 @@ export function useVideoEmbedForm() {
       alpha: 0.1,
       frameSkip: 5,
       arnoldIterations: 10,
-      useSceneDetection: true,
-      sceneThreshold: 30,
     },
   });
 
@@ -54,8 +52,6 @@ export function useVideoEmbedForm() {
       alpha: formData.alpha,
       frameSkip: formData.frameSkip,
       arnoldIterations: formData.arnoldIterations,
-      useSceneDetection: formData.useSceneDetection,
-      sceneThreshold: formData.sceneThreshold,
     });
   };
 
