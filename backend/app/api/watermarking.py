@@ -18,10 +18,21 @@ router = APIRouter()
 async def embed_watermark(
     host_image: UploadFile = File(...),
     watermark_image: UploadFile = File(...),
-    alpha: float = Form(0.1),
+    alpha: float = Form(0.02),
     arnold_iterations: int = Form(10)
 ):
-    """Embed watermark into host image with progress streaming"""
+    """Embed watermark into host image with progress streaming
+    
+    Cấu hình tối ưu cố định:
+    - DWT-DCT-SVD algorithm
+    - Haar wavelet
+    - LH band (mid-frequency)
+    - Block size 8x8
+    
+    User có thể điều chỉnh:
+    - alpha: Cường độ nhúng (0.02 = invisible, 0.05 = balanced, 0.1+ = robust)
+    - arnold_iterations: Số lần scramble watermark (10 = default)
+    """
     
     async def generate():
         try:
@@ -63,7 +74,11 @@ async def embed_watermark(
             yield f"data: {json.dumps({'stage': 'embedding', 'progress': 0, 'message': 'Đang nhúng watermark bằng DWT-DCT-SVD...'})}\n\n"
             await asyncio.sleep(0.1)
             
-            watermarker = DWT_DCT_SVD_Watermark(alpha=alpha, arnold_iterations=arnold_iterations, use_dwt=True, wavelet='haar')
+            # Cấu hình tối ưu cố định
+            watermarker = DWT_DCT_SVD_Watermark(
+                alpha=alpha, 
+                arnold_iterations=arnold_iterations
+            )
             result = watermarker.embed(host_path, wm_path, output_path)
             
             yield f"data: {json.dumps({'stage': 'embedding', 'progress': 100, 'message': 'Đã nhúng xong watermark'})}\n\n"
@@ -145,7 +160,8 @@ async def extract_watermark(
             yield f"data: {json.dumps({'stage': 'extracting', 'progress': 0, 'message': 'Đang trích xuất watermark bằng DWT-DCT-SVD...'})}\n\n"
             await asyncio.sleep(0.1)
             
-            watermarker = DWT_DCT_SVD_Watermark(arnold_iterations=arnold_iterations, use_dwt=True, wavelet='haar')
+            # Phải dùng cùng config với lúc embed
+            watermarker = DWT_DCT_SVD_Watermark(arnold_iterations=arnold_iterations)
             extracted = watermarker.extract(wm_path, orig_path, watermark_size)
             
             # Save extracted watermark

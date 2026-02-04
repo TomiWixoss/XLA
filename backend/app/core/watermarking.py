@@ -31,20 +31,23 @@ class DWT_DCT_SVD_Watermark:
     - Tốt hơn 46% so với DCT-only
     """
     
-    def __init__(self, block_size=8, alpha=0.1, arnold_iterations=10, use_dwt=True, wavelet='haar'):
+    def __init__(self, alpha=0.02, arnold_iterations=10):
         """
+        Cấu hình tối ưu cho invisible watermarking
+        
         Args:
-            block_size: Kích thước block cho DCT (8x8 chuẩn JPEG)
-            alpha: Hệ số nhúng watermark (0.01-0.5, càng lớn càng bền nhưng càng rõ)
+            alpha: Hệ số nhúng watermark (0.01-0.05 cho invisible, 0.1+ cho robust)
             arnold_iterations: Số lần xáo trộn Arnold Cat Map
-            use_dwt: Sử dụng DWT layer (True = DWT-DCT-SVD, False = DCT-SVD)
-            wavelet: Loại wavelet ('haar', 'db1', 'db2', etc.)
+        
+        Cấu hình cố định (tối ưu):
+            - block_size: 8x8 (chuẩn JPEG)
+            - use_dwt: True (DWT-DCT-SVD)
+            - wavelet: 'haar' (nhanh và hiệu quả)
+            - embed_band: 'LH' (mid-frequency, invisible + robust)
         """
-        self.block_size = block_size
+        self.block_size = 8
         self.alpha = alpha
         self.arnold_iterations = arnold_iterations
-        self.use_dwt = use_dwt
-        self.wavelet = wavelet
     
     def _dct2(self, block):
         """2D DCT Transform"""
@@ -160,16 +163,10 @@ class DWT_DCT_SVD_Watermark:
         host_ycrcb = cv2.cvtColor(host, cv2.COLOR_BGR2YCrCb)
         host_y = host_ycrcb[:, :, 0].astype(np.float32)
         
-        # DWT Layer (CHUẨN HỌC THUẬT)
-        if self.use_dwt:
-            coeffs = pywt.dwt2(host_y, self.wavelet)
-            LL, (LH, HL, HH) = coeffs
-            # Nhúng vào sub-band LL (low-frequency) cho imperceptibility
-            # Hoặc LH (mid-frequency) cho robustness - theo paper
-            selected_band = LL
-        else:
-            selected_band = host_y
-            LL = LH = HL = HH = None
+        # DWT Layer - Cấu hình tối ưu: haar wavelet, LH band
+        coeffs = pywt.dwt2(host_y, 'haar')
+        LL, (LH, HL, HH) = coeffs
+        selected_band = LH  # Mid-frequency: invisible + robust
         
         # Tính kích thước watermark dựa trên số block
         h, w = selected_band.shape
@@ -216,16 +213,13 @@ class DWT_DCT_SVD_Watermark:
             if watermark_idx >= len(watermark_flat):
                 break
         
-        # IDWT Layer (CHUẨN HỌC THUẬT)
-        if self.use_dwt:
-            # Reconstruct từ DWT coefficients
-            coeffs_modified = (watermarked_band, (LH, HL, HH))
-            watermarked_y = pywt.idwt2(coeffs_modified, self.wavelet)
-            # Resize về kích thước gốc nếu cần
-            if watermarked_y.shape != (host_ycrcb.shape[0], host_ycrcb.shape[1]):
-                watermarked_y = cv2.resize(watermarked_y, (host_ycrcb.shape[1], host_ycrcb.shape[0]))
-        else:
-            watermarked_y = watermarked_band
+        # IDWT Layer - Reconstruct với LH band đã modify
+        coeffs_modified = (LL, (watermarked_band, HL, HH))
+        watermarked_y = pywt.idwt2(coeffs_modified, 'haar')
+        
+        # Resize về kích thước gốc nếu cần
+        if watermarked_y.shape != (host_ycrcb.shape[0], host_ycrcb.shape[1]):
+            watermarked_y = cv2.resize(watermarked_y, (host_ycrcb.shape[1], host_ycrcb.shape[0]))
         
         # Clip values và chuyển về uint8
         watermarked_y = np.clip(watermarked_y, 0, 255).astype(np.uint8)
@@ -253,8 +247,9 @@ class DWT_DCT_SVD_Watermark:
                 'ssim': float(ssim_val),
                 'mse': float(mse)
             },
-            'algorithm': 'DWT-DCT-SVD' if self.use_dwt else 'DCT-SVD',
-            'wavelet': self.wavelet if self.use_dwt else None
+            'algorithm': 'DWT-DCT-SVD',
+            'wavelet': 'haar',
+            'embed_band': 'LH'
         }
     
     def extract(self, watermarked_image_path, original_image_path, watermark_size):
@@ -280,17 +275,13 @@ class DWT_DCT_SVD_Watermark:
         watermarked_y = cv2.cvtColor(watermarked, cv2.COLOR_BGR2YCrCb)[:, :, 0].astype(np.float32)
         original_y = cv2.cvtColor(original, cv2.COLOR_BGR2YCrCb)[:, :, 0].astype(np.float32)
         
-        # DWT Layer (CHUẨN HỌC THUẬT)
-        if self.use_dwt:
-            coeffs_wm = pywt.dwt2(watermarked_y, self.wavelet)
-            coeffs_orig = pywt.dwt2(original_y, self.wavelet)
-            LL_wm, (LH_wm, HL_wm, HH_wm) = coeffs_wm
-            LL_orig, (LH_orig, HL_orig, HH_orig) = coeffs_orig
-            selected_band_wm = LL_wm
-            selected_band_orig = LL_orig
-        else:
-            selected_band_wm = watermarked_y
-            selected_band_orig = original_y
+        # DWT Layer - Cấu hình tối ưu: haar wavelet, LH band
+        coeffs_wm = pywt.dwt2(watermarked_y, 'haar')
+        coeffs_orig = pywt.dwt2(original_y, 'haar')
+        LL_wm, (LH_wm, HL_wm, HH_wm) = coeffs_wm
+        LL_orig, (LH_orig, HL_orig, HH_orig) = coeffs_orig
+        selected_band_wm = LH_wm  # Mid-frequency band
+        selected_band_orig = LH_orig
         
         h, w = selected_band_wm.shape
         

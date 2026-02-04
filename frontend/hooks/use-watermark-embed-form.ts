@@ -18,7 +18,7 @@ export function useWatermarkEmbedForm() {
   const form = useForm<EmbedWatermarkInput>({
     resolver: zodResolver(embedWatermarkSchema),
     defaultValues: {
-      alpha: 0.1,
+      alpha: 0.02,
       arnoldIterations: 10,
     },
   });

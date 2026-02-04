@@ -317,7 +317,7 @@ export function WatermarkingScreen({ isActive }: Props) {
                       <div className="field-group mb-0">
                         <div className="field-label">
                           <span>Alpha</span>
-                          <span className="text-mono font-bold text-[var(--watermarking)]">{alpha?.toFixed(2) || '0.10'}</span>
+                          <span className="text-mono font-bold text-[var(--watermarking)]">{alpha?.toFixed(2) || '0.02'}</span>
                         </div>
                         <input
                           type="range"
