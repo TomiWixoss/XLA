@@ -351,8 +351,8 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                         <input
                           type="range"
-                          min="0.01"
-                          max="0.5"
+                          min="0"
+                          max="1"
                           step="0.01"
                           {...embedFormState.register('alpha', { valueAsNumber: true })}
                           className="field-range w-full"
@@ -371,8 +371,8 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                         <input
                           type="range"
-                          min="1"
-                          max="10"
+                          min="0"
+                          max="30"
                           step="1"
                           {...embedFormState.register('frameSkip', { valueAsNumber: true })}
                           className="field-range w-full"
@@ -391,15 +391,15 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                         <input
                           type="range"
-                          min="1"
-                          max="20"
+                          min="0"
+                          max="50"
                           step="1"
                           {...embedFormState.register('arnoldIterations', { valueAsNumber: true })}
                           className="field-range w-full"
                         />
                         <div className="range-labels">
-                          <span>1</span>
-                          <span>20</span>
+                          <span>0</span>
+                          <span>50</span>
                         </div>
                       </div>
                     </div>
@@ -653,7 +653,6 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                         <input
                           type="number"
-                          min="0"
                           {...extractFormState.register('frameNumber', { valueAsNumber: true })}
                           className="field-input"
                         />
@@ -666,8 +665,6 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                         <input
                           type="number"
-                          min="32"
-                          max="256"
                           {...extractFormState.register('watermarkSize', { valueAsNumber: true })}
                           className="field-input"
                         />
@@ -680,8 +677,6 @@ export function VideoScreen({ isActive }: Props) {
                         </div>
                         <input
                           type="number"
-                          min="1"
-                          max="20"
                           {...extractFormState.register('arnoldIterations', { valueAsNumber: true })}
                           className="field-input"
                         />
